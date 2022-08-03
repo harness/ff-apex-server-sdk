@@ -1,0 +1,12 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "name": "ff-apex-server-sdk",
+  "namespace": "",
+  "sfdcLoginUrl": "https://harness5-dev-ed.my.salesforce.com/",
+  "sourceApiVersion": "55.0"
+}
