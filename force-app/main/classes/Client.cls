@@ -8,8 +8,14 @@ public class Client {
         OASClient client = new OASClient(this.config);
         OASClientApi api = new OASClientApi(client);
 
+        OASAuthenticationRequestTarget target = new OASAuthenticationRequestTarget();
+        target.identifier = 'Harness';
+        target.name = 'Harness';
+
         OASAuthenticationRequest req = new OASAuthenticationRequest();
         req.apiKey = sdkKey;
+        req.target = target;
+
 
         Map<String, Object> params = new Map<String, Object>{
             'oaSAuthenticationRequest' => req
