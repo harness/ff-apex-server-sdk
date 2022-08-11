@@ -14,6 +14,18 @@ public class Config {
         this.metricsEnabled = metricsEnabled;
     }
 
+    public String getBaseUrl() {
+        return this.baseUrl;
+    }
+
+    public String getEventsUrl() {
+        return this.eventsUrl;
+    }
+
+    public Boolean getMetricsEnabled() {
+        return this.metricsEnabled;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
