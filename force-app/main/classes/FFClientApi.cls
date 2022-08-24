@@ -24,7 +24,7 @@ public class FFClientApi {
     /**
      * Authenticate with the admin server.
      * Used to retrieve all target segments for certain account id.
-     * @param oaSAuthenticationRequest  (optional)
+     * @param ffAuthenticationRequest  (optional)
      * @return FFAuthenticationResponse
      * @throws FFBase.ApiException if fails to make API call
      */
