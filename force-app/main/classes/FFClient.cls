@@ -35,11 +35,11 @@ public class FFClient {
     }
 
     private String getAuthCacheKey() {
-        return 'local.basic.auth' + this.sdkKey.replaceAll('-', '');
+        return this.config.getCacheNamespace() + '.' + this.config.getCachePartition() + '.auth' + this.sdkKey.replaceAll('-', '');
     }
 
     private String getEvalCacheKey(String identifier, String target) {
-        return 'local.basic.feature' + identifier + target;
+        return this.config.getCacheNamespace() + '.' + this.config.getCachePartition() + '.feature' + identifier + target;
     }
 
     private Boolean authenticate() {
