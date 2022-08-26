@@ -42,6 +42,18 @@ public class FFTarget {
 
     }
 
+    public FFTarget(String identifier, String name, Boolean anonymous, Object attributes) {
+        this.identifier = identifier;
+        this.name = name;
+        this.anonymous = anonymous;
+        this.attributes = attributes;
+    }
+
+    public FFTarget(String identifier, String name) {
+        this.identifier = identifier;
+        this.name = name;
+    }
+
     public static FFTarget getExample() {
         FFTarget target = new FFTarget();
           target.identifier = 'john-doe';
@@ -66,6 +78,46 @@ public class FFTarget {
         hashCode = (17 * hashCode) + (name == null ? 0 : System.hashCode(name));
         hashCode = (17 * hashCode) + (attributes == null ? 0 : System.hashCode(attributes));
         return hashCode;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public class Builder {
+        private String identifier;
+        private String name;
+        private Boolean anonymous;
+        private Object attributes;
+
+        public Builder identifier(String identifier) {
+            this.identifier = identifier;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder anonymous(Boolean anonymous) {
+            this.anonymous = anonymous;
+            return this;
+        }
+
+        public Builder attributes(Object attributes) {
+            this.attributes = attributes;
+            return this;
+        }
+
+        public FFTarget build() {
+            return new FFTarget(
+                this.identifier,
+                this.name,
+                this.anonymous,
+                this.attributes
+            );
+        }
     }
 }
 
