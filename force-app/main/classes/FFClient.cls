@@ -39,7 +39,13 @@ public class FFClient {
     }
 
     private String getEvalCacheKey(String identifier, String target) {
-        return this.config.getCacheNamespace() + '.' + this.config.getCachePartition() + '.feature' + identifier + target;
+        return this.config.getCacheNamespace() + '.' + this.config.getCachePartition() + '.feature' + this.removeSpecChars(identifier) +
+        removeSpecChars(target);
+    }
+
+    private String removeSpecChars(String s) {
+        String text = s.substring(0);
+        return text.replaceAll('[^a-zA-Z0-9\\s+]', '');
     }
 
     private Boolean authenticate() {
