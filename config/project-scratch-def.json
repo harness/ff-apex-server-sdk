@@ -2,7 +2,7 @@
   "orgName": "ff-apex-server-sdk",
   "hasSampleData": false,
   "edition": "Developer",
-  "features": ["Communities"],
+  "features": ["Communities", "EnableSetPasswordInApi"],
   "settings": {
     "communitiesSettings": {
       "enableNetworksEnabled": true
@@ -12,11 +12,6 @@
     },
     "lightningExperienceSettings": {
         "enableS1DesktopEnabled": true
-    },
-    "securitySettings": {
-        "passwordPolicies": {
-            "enableSetPasswordInApi": true
-        }
     },
     "mobileSettings": {
         "enableS1EncryptedStoragePref2": false

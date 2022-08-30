@@ -15,7 +15,7 @@ private class FFMetricsApiTest {
         Map<String, Object> params = new Map<String, Object>{
             'environment' => 'null',
             'cluster' => 'null',
-            'ffMetrics' => ''
+            'ffMetrics' => new FFMetrics()
         };
 
         FFBaseCallout client;

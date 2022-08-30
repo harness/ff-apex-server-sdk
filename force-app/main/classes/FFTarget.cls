@@ -36,13 +36,13 @@ public class FFTarget {
      * a JSON representation of the attributes for this target
      * @return attributes
      */
-    public Object attributes { get; set; }
+    public Map<String, Object> attributes { get; set; }
 
     public FFTarget() {
 
     }
 
-    public FFTarget(String identifier, String name, Boolean anonymous, Object attributes) {
+    public FFTarget(String identifier, String name, Boolean anonymous, Map<String, Object> attributes) {
         this.identifier = identifier;
         this.name = name;
         this.anonymous = anonymous;
@@ -56,9 +56,9 @@ public class FFTarget {
 
     public static FFTarget getExample() {
         FFTarget target = new FFTarget();
-          target.identifier = 'john-doe';
-          target.name = 'John Doe';
-          target.attributes = JSON.deserialize('{"age":20,"location":"Belfast"}', Object.class);
+        target.identifier = 'john-doe';
+        target.name = 'John Doe';
+        target.attributes = (Map<String, Object>) JSON.deserializeUntyped('{"age":20,"location":"Belfast"}');
         return target;
     }
 
@@ -88,7 +88,7 @@ public class FFTarget {
         private String identifier;
         private String name;
         private Boolean anonymous;
-        private Object attributes;
+        private Map<String, Object> attributes;
 
         public Builder identifier(String identifier) {
             this.identifier = identifier;
@@ -105,7 +105,7 @@ public class FFTarget {
             return this;
         }
 
-        public Builder attributes(Object attributes) {
+        public Builder attributes(Map<String, Object> attributes) {
             this.attributes = attributes;
             return this;
         }

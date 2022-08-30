@@ -22,9 +22,9 @@ public class FFClient {
         this.client = new FFBaseCallout(this.config);
         this.api = new FFClientApi(client);
 
-        if (Cache.Org.get(getAuthCacheKey()) != null) {
+        if (this.config.getCache().get(getAuthCacheKey()) != null) {
             System.debug('Loading authentication data from cache');
-            Map<String, String> authData = (Map<String, String>) Cache.Org.get(this.getAuthCacheKey());
+            Map<String, String> authData = (Map<String, String>) this.config.getCache().get(this.getAuthCacheKey());
             this.envUUID = authData.get('envUUID');
             this.cluster = authData.get('cluster');
             this.client.setJWTToken(authData.get('jwt'));
@@ -35,12 +35,12 @@ public class FFClient {
     }
 
     private String getAuthCacheKey() {
-        return this.config.getCacheNamespace() + '.' + this.config.getCachePartition() + '.auth' + this.sdkKey.replaceAll('-', '');
+        return config.getCache().getCacheNamespace() + '.' + config.getCache().getCachePartition() + '.auth' + this.sdkKey.replaceAll('-', '');
     }
 
     private String getEvalCacheKey(String identifier, String target) {
-        return this.config.getCacheNamespace() + '.' + this.config.getCachePartition() + '.feature' + this.removeSpecChars(identifier) +
-        removeSpecChars(target);
+        return config.getCache().getCacheNamespace() + '.' + config.getCache().getCachePartition() + '.feature' + this.removeSpecChars(identifier) +
+                removeSpecChars(target);
     }
 
     private String removeSpecChars(String s) {
@@ -78,11 +78,11 @@ public class FFClient {
             FFJWTClaims claims = (FFJWTClaims)JSON.deserialize(decoded, FFJWTClaims.class);
             this.envUUID = claims.environment;
             this.cluster = claims.clusterIdentifier;
-            Cache.Org.put(getAuthCacheKey(), new Map<String, String>{
+            config.getCache().put(getAuthCacheKey(), new Map<String, String>{
                 'envUUID' => this.envUUID,
                 'cluster' => this.cluster,
                 'jwt' => authToken
-            }, this.config.getAuthExpireAfter());
+            }, config.getAuthExpireAfter());
             System.debug('Env UUID ' + this.envUUID);
             System.debug('Cluster ID ' + this.cluster);
             FFClient.retryCount = 0;
@@ -102,7 +102,7 @@ public class FFClient {
         try {
             List<FFEvaluation> evals = api.getEvaluations(params);
             for (FFEvaluation eval: evals) {
-                Cache.Org.put(this.getEvalCacheKey(eval.flag, this.target.identifier), eval, this.config.getEvalExpireAfter());
+                config.getCache().put(this.getEvalCacheKey(eval.flag, this.target.identifier), eval, config.getEvalExpireAfter());
             }
             return evals;
         } catch (FFBase.ApiException e) {
@@ -122,14 +122,14 @@ public class FFClient {
             'cluster' => this.cluster
         };
         try {
-            FFEvaluation eval = (FFEvaluation) Cache.Org.get(this.getEvalCacheKey(identifier, this.target.identifier));
+            FFEvaluation eval = (FFEvaluation) config.getCache().get(this.getEvalCacheKey(identifier, this.target.identifier));
             if (eval != null) {
                 System.debug('Loading evaluation from cache: ' + identifier);
                 return eval;
             }
             eval = api.getEvaluationByIdentifier(params);
             System.debug('Loading evaluation from remote url ' + identifier);
-            Cache.Org.put(this.getEvalCacheKey(eval.flag, this.target.identifier), eval, this.config.getEvalExpireAfter());
+            config.getCache().put(this.getEvalCacheKey(eval.flag, this.target.identifier), eval, config.getEvalExpireAfter());
             return eval;
         } catch (FFBase.ApiException e) {
             if (FFClient.retryCount <= FFClient.maxRetry && e.getStatusCode() == 403 && authenticate()) {

@@ -8,27 +8,19 @@ public class FFConfig {
     private String eventsUrl = EVENTS_URL;
     private Boolean metricsEnabled = METRICS_ENABLED;
 
+    private FFCache cache;
+
     private Integer evalExpireAfter = 60000;
     private Integer authExpireAfter = 60000 * 60 * 24;
 
-    private String cacheNamespace;
-    private String cachePartition;
-
     public FFConfig(String baseUrl, String eventsUrl, Boolean metricsEnabled, Integer evalExpireAfter, Integer authExpireAfter,
-                    String cacheNamespace, String cachePartition) {
-        if (cacheNamespace.equals('')) {
-            throw new IllegalArgumentException('cacheNamespace cannot be empty');
-        }
-        if (cachePartition.equals('')) {
-            throw new IllegalArgumentException('cachePartition cannot be empty');
-        }
+                    FFCache cache) {
         this.baseUrl = baseUrl;
         this.eventsUrl = eventsUrl;
         this.metricsEnabled = metricsEnabled;
         this.evalExpireAfter = evalExpireAfter;
         this.authExpireAfter = authExpireAfter;
-        this.cacheNamespace = cacheNamespace;
-        this.cachePartition = cachePartition;
+        this.cache = cache;
     }
 
     public String getBaseUrl() {
@@ -51,12 +43,8 @@ public class FFConfig {
         return this.authExpireAfter;
     }
 
-    public String getCacheNamespace() {
-        return this.cacheNamespace;
-    }
-
-    public String getCachePartition() {
-        return this.cachePartition;
+    public FFCache getCache() {
+        return this.cache;
     }
 
     public static Builder builder() {
@@ -72,8 +60,7 @@ public class FFConfig {
         private Integer evalExpireAfter = 300;
         private Integer authExpireAfter = 60 * 60 * 24;
 
-        private String cacheNamespace;
-        private String cachePartition;
+        private FFCache cache;
 
         public Builder baseUrl(String url) {
             this.baseUrl = url;
@@ -100,13 +87,8 @@ public class FFConfig {
             return this;
         }
 
-        public Builder cacheNamespace(String namespace) {
-            this.cacheNamespace = namespace;
-            return this;
-        }
-
-        public Builder cachePartition(String partition) {
-            this.cachePartition = partition;
+        public Builder cache(FFCache cache) {
+            this.cache = cache;
             return this;
         }
 
@@ -117,8 +99,7 @@ public class FFConfig {
                 this.metricsEnabled,
                 this.evalExpireAfter,
                 this.authExpireAfter,
-                this.cacheNamespace,
-                this.cachePartition
+                this.cache
             );
         }
     }

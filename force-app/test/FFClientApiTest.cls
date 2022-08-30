@@ -1,5 +1,29 @@
 @isTest
 private class FFClientApiTest {
+
+    class MockCache implements FFCache {
+        private Map<String, Object> cache;
+        public MockCache() {
+            cache = new Map<String,Object>();
+        }
+
+        public void put(String key, Object value, Integer ttl) {
+            cache.put(key, value);
+        }
+
+        public Object get(String key) {
+            return cache.get(key);
+        }
+
+        public String getCacheNamespace() {
+            return 'test';
+        }
+
+        public String getCachePartition() {
+            return 'test';
+        }
+    }
+
     /**
      * Authenticate with the admin server.
      *
@@ -12,17 +36,19 @@ private class FFClientApiTest {
         res.setStatus('OK');
         Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
 
+        FFAuthenticationRequest req = new FFAuthenticationRequest();
+
         Map<String, Object> params = new Map<String, Object>{
-            'ffAuthenticationRequest' => ''
+            'ffAuthenticationRequest' => req
         };
 
-        FFBaseCallout client;
-        FFClientApi api;
+        MockCache cache = new MockCache();
+        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFClientApi api = new FFClientApi(client);
+
         FFAuthenticationResponse response;
         FFAuthenticationResponse expectedResponse;
         String js = '';
-
-        api = new FFClientApi(new FFBaseCallout(FFConfig.builder().build()));
 
         js = JSON.serialize(FFAuthenticationResponse.getExample());
         res.setHeader('Content-Type', 'application/json');
@@ -51,14 +77,13 @@ private class FFClientApiTest {
             'cluster' => 'null'
         };
 
-        FFBaseCallout client;
-        FFClientApi api;
+        MockCache cache = new MockCache();
+        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFClientApi api = new FFClientApi(client);
+
         FFEvaluation response;
         FFEvaluation expectedResponse;
         String js = '';
-
-        client = new FFBaseCallout(FFConfig.builder().build());
-        api = new FFClientApi(client);
 
         js = JSON.serialize(FFEvaluation.getExample());
         res.setHeader('Content-Type', 'application/json');
@@ -86,14 +111,12 @@ private class FFClientApiTest {
             'cluster' => 'null'
         };
 
-        FFBaseCallout client;
-        FFClientApi api;
+        MockCache cache = new MockCache();
+        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFClientApi api = new FFClientApi(client);
         List<FFEvaluation> response;
         List<FFEvaluation> expectedResponse;
         String js = '';
-
-        client = new FFBaseCallout(FFConfig.builder().build());
-        api = new FFClientApi(client);
 
         // js = JSON.serialize(List.getExample());
         // res.setHeader('Content-Type', 'application/json');
@@ -120,12 +143,11 @@ private class FFClientApiTest {
             'cluster' => 'null'
         };
 
-        FFBaseCallout client;
-        FFClientApi api;
         String js = '';
 
-        client = new FFBaseCallout(FFConfig.builder().build());
-        api = new FFClientApi(client);
+        MockCache cache = new MockCache();
+        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFClientApi api = new FFClientApi(client);
         api.stream(params);
     }
 }
