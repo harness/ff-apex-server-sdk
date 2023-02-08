@@ -20,33 +20,6 @@ public class FFAuthenticationRequest {
      */
     public String apiKey { get; set; }
 
-    /**
-     * Get target
-     * @return target
-     */
-    public FFAuthenticationRequestTarget target { get; set; }
-
-    public static FFAuthenticationRequest getExample() {
-        FFAuthenticationRequest authenticationRequest = new FFAuthenticationRequest();
-          authenticationRequest.apiKey = '896045f3-42ee-4e73-9154-086644768b96';
-          authenticationRequest.target = FFAuthenticationRequestTarget.getExample();
-        return authenticationRequest;
-    }
-
-    public Boolean equals(Object obj) {
-        if (obj instanceof FFAuthenticationRequest) {
-            FFAuthenticationRequest authenticationRequest = (FFAuthenticationRequest) obj;
-            return this.apiKey == authenticationRequest.apiKey
-                && this.target == authenticationRequest.target;
-        }
-        return false;
-    }
-
-    public Integer hashCode() {
-        Integer hashCode = 43;
-        hashCode = (17 * hashCode) + (apiKey == null ? 0 : System.hashCode(apiKey));
-        hashCode = (17 * hashCode) + (target == null ? 0 : System.hashCode(target));
-        return hashCode;
-    }
+    public Map<String, String> target { get; set; }
 }
 

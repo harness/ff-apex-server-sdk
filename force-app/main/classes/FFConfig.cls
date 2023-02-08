@@ -11,15 +11,24 @@ public class FFConfig {
     private FFCache cache;
 
     private Integer evalExpireAfter = 60000;
+    private Integer featureConfigTimeToLive = 3600;
     private Integer authExpireAfter = 60000 * 60 * 24;
 
-    public FFConfig(String baseUrl, String eventsUrl, Boolean metricsEnabled, Integer evalExpireAfter, Integer authExpireAfter,
-                    FFCache cache) {
+    public FFConfig(
+        String baseUrl,
+        String eventsUrl,
+        Boolean metricsEnabled,
+        Integer evalExpireAfter,
+        Integer authExpireAfter,
+        Integer featureConfigTimeToLive,
+        FFCache cache
+    ) {
         this.baseUrl = baseUrl;
         this.eventsUrl = eventsUrl;
         this.metricsEnabled = metricsEnabled;
         this.evalExpireAfter = evalExpireAfter;
         this.authExpireAfter = authExpireAfter;
+        this.featureConfigTimeToLive = featureConfigTimeToLive;
         this.cache = cache;
     }
 
@@ -43,6 +52,10 @@ public class FFConfig {
         return this.authExpireAfter;
     }
 
+    public Integer getFeatureConfigTimeToLive() {
+        return this.featureConfigTimeToLive;
+    }
+
     public FFCache getCache() {
         return this.cache;
     }
@@ -58,6 +71,7 @@ public class FFConfig {
         private Boolean metricsEnabled = METRICS_ENABLED;
 
         private Integer evalExpireAfter = 300;
+        private Integer featureConfigTimeToLive = 3600;
         private Integer authExpireAfter = 60 * 60 * 24;
 
         private FFCache cache;
@@ -74,6 +88,11 @@ public class FFConfig {
 
         public Builder metricsEnabled(Boolean value) {
             this.metricsEnabled = value;
+            return this;
+        }
+
+        public Builder featureConfigTimeToLive(Integer seconds) {
+            this.featureConfigTimeToLive = seconds;
             return this;
         }
 
@@ -99,6 +118,7 @@ public class FFConfig {
                 this.metricsEnabled,
                 this.evalExpireAfter,
                 this.authExpireAfter,
+                this.featureConfigTimeToLive,
                 this.cache
             );
         }

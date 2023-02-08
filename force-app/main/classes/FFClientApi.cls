@@ -9,7 +9,6 @@
  * https://github.com/OpenAPITools/openapi-generator
  * Do not edit the class manually.
  */
-
 public class FFClientApi {
     FFBaseCallout client;
 
@@ -42,6 +41,68 @@ public class FFClientApi {
             new List<String>{ 'application/json' },
             new List<String>(),
             FFAuthenticationResponse.class
+        );
+    }
+
+    /**
+     * Get all feature flags activations
+     * 
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster Unique identifier for the cluster for the account (optional)
+     * @return List<FFFeatureConfig>
+     * @throws FFBase.ApiException if fails to make API call
+     */
+    public List<FFFeatureConfig> getFeatureConfigs(Map<String, Object> params) {
+        client.assertNotNull(params.get('environmentUUID'), 'environmentUUID');
+        List<FFBase.Param> query = new List<FFBase.Param>();
+
+        // cast query params to verify their expected type
+        query.addAll(client.makeParam('cluster', (String) params.get('cluster')));
+
+        List<FFBase.Param> form = new List<FFBase.Param>();
+
+        return (List<FFFeatureConfig>) client.invoke(
+            'GET', '/client/env/{environmentUUID}/feature-configs', '',
+            query, form,
+            new Map<String, Object>{
+                'environmentUUID' => (String) params.get('environmentUUID')
+            },
+            new Map<String, Object>(),
+            new List<String>{ 'application/json' },
+            new List<String>(),
+            new List<String> { 'BearerAuth' },
+            List<FFFeatureConfig>.class
+        );
+    }
+
+     /**
+     * Used to retrieve all segments for certain account id.
+     * 
+     * @param environmentUUID Unique identifier for the environment object in the API. (required)
+     * @param cluster Unique identifier for the cluster for the account (optional)
+     * @return List<FFTargetSegment>
+     * @throws FFBase.ApiException if fails to make API call
+     */
+    public List<FFTargetSegment> getTargetSegments(Map<String, Object> params) {
+        client.assertNotNull(params.get('environmentUUID'), 'environmentUUID');
+        List<FFBase.Param> query = new List<FFBase.Param>();
+
+        // cast query params to verify their expected type
+        query.addAll(client.makeParam('cluster', (String) params.get('cluster')));
+
+        List<FFBase.Param> form = new List<FFBase.Param>();
+
+        return (List<FFTargetSegment>) client.invoke(
+            'GET', '/client/env/{environmentUUID}/target-segments', '',
+            query, form,
+            new Map<String, Object>{
+                'environmentUUID' => (String) params.get('environmentUUID')
+            },
+            new Map<String, Object>(),
+            new List<String>{ 'application/json' },
+            new List<String>(),
+            new List<String> { 'BearerAuth' },
+            List<FFTargetSegment>.class
         );
     }
 
