@@ -5,9 +5,9 @@ public class FFFeatureVariationRulesEvaluator implements FFFeatureVariationEvalu
         this.segmentEvaluator = segmentEvaluator;
     }
 
-    public String evaluateVariation(FFFeatureConfig featureConfig, FFTarget target) {
+    public String evaluateVariation(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target) {
        if(featureConfig.rules == null) return null;
-       for(FFFeatureServingRule servingRule: this.priorityOrderedRulesFrom(featureConfig)) {
+       for(FFModelsFeatures.ServingRule servingRule: this.priorityOrderedRulesFrom(featureConfig)) {
             if(this.noClausesEvaluateToFalse(servingRule.clauses, target)) {
                 if(servingRule.serve != null){
                     if(servingRule.serve.distribution != null) {
@@ -22,19 +22,19 @@ public class FFFeatureVariationRulesEvaluator implements FFFeatureVariationEvalu
        return null;
     }
 
-    private List<FFFeatureServingRule> priorityOrderedRulesFrom(FFFeatureConfig featureConfig) {
-       List<FFFeatureServingRule> rules = featureConfig.rules.clone();
+    private List<FFModelsFeatures.ServingRule> priorityOrderedRulesFrom(FFModelsFeatures.FeatureConfig  featureConfig) {
+       List<FFModelsFeatures.ServingRule> rules = featureConfig.rules.clone();
        rules.sort();
        return rules;
     }
 
-    private Boolean noClausesEvaluateToFalse(List<FFClause> clauses, FFTarget target) {
+    private Boolean noClausesEvaluateToFalse(List<FFModelsFeatures.Clause> clauses, FFTarget target) {
         return !this.anyClauseEvaluatesToFalse(clauses, target);
     }
 
-    private Boolean anyClauseEvaluatesToFalse(List<FFClause> clauses, FFTarget target) {
+    private Boolean anyClauseEvaluatesToFalse(List<FFModelsFeatures.Clause> clauses, FFTarget target) {
         if(clauses != null) {
-            for(FFClause clause: clauses) {
+            for(FFModelsFeatures.Clause clause: clauses) {
                 if(!FFClauseEvaluator.evaluateClause(clause, target, this.segmentEvaluator)){
                     return true;
                 }

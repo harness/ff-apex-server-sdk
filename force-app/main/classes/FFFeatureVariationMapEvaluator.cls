@@ -5,9 +5,9 @@ public class FFFeatureVariationMapEvaluator implements FFFeatureVariationEvaluat
         this.segmentEvaluator = segmentEvaluator;
     }
 
-    public String evaluateVariation(FFFeatureConfig featureConfig, FFTarget target) {
+    public String evaluateVariation(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target) {
        if(featureConfig.variationToTargetMap == null) return null;
-       for(FFFeatureVariationMap variationMap: featureConfig.variationToTargetMap) {
+       for(FFModelsFeatures.VariationMap variationMap: featureConfig.variationToTargetMap) {
            if(this.hasTargetIn(variationMap.targets, target.identifier)) {
                return variationMap.variation;
            }
@@ -18,9 +18,9 @@ public class FFFeatureVariationMapEvaluator implements FFFeatureVariationEvaluat
        return null;
     }
 
-    private Boolean hasTargetIn(List<FFFeatureTargetMap> variationMapTargets, String targetIdentifier) {
+    private Boolean hasTargetIn(List<FFModelsFeatures.TargetMap> variationMapTargets, String targetIdentifier) {
         if(variationMapTargets != null) {
-            for(FFFeatureTargetMap target: variationMapTargets) {
+            for(FFModelsFeatures.TargetMap target: variationMapTargets) {
                 if(target != null && target.identifier == targetIdentifier) {
                     return true;
                 }

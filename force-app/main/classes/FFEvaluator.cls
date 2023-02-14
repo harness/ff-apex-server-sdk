@@ -1,3 +1,3 @@
 public interface FFEvaluator {
-    FFFeatureVariation evaluate(FFFeatureConfig featureConfig, FFTarget target);
+    FFModelsFeatures.Variation evaluate(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target);
 }

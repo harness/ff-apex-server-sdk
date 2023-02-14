@@ -1,3 +1,0 @@
-public enum FFFeatureKind {
-    KIND_BOOLEAN, KIND_JSON, KIND_NUMBER, KIND_STRING
-}

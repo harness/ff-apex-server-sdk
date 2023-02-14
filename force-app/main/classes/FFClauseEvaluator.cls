@@ -1,6 +1,6 @@
 public abstract class FFClauseEvaluator {
 
-    public static Boolean evaluateClause(FFClause clause, FFTarget target, FFSegmentEvaluator segmentEvaluator) {
+    public static Boolean evaluateClause(FFModelsFeatures.Clause clause, FFTarget target, FFSegmentEvaluator segmentEvaluator) {
         if(clause == null || String.isEmpty(clause.op) || clause.values == null || clause.values.size() == 0) {
             return false;
         }
@@ -12,7 +12,7 @@ public abstract class FFClauseEvaluator {
         return FFClauseEvaluator.evaluateStringCondition(clause, attribute);
     }
 
-    private static Boolean evaluateStringCondition(FFClause clause, String attribute) {
+    private static Boolean evaluateStringCondition(FFModelsFeatures.Clause clause, String attribute) {
         String firstValue = clause.values.get(0);
         switch on clause.op {
             when 'starts_with' {
@@ -52,7 +52,9 @@ public abstract class FFClauseEvaluator {
             }
             when else {
                 if(target.attributes != null && target.attributes.containsKey(attribute)) {
-                    return target.attributes.get(attribute)?.toString();
+                    Object value = target.attributes.get(attribute);
+                    if(value != null)
+                        return String.valueOf(value);
                 }
             }
         }

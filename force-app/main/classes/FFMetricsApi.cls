@@ -40,7 +40,7 @@ public class FFMetricsApi {
 
         client.invoke(
             'POST', '/metrics/{environment}',
-            (FFMetrics) params.get('ffMetrics'),
+            (FFModelsEvents.Metrics) params.get('ffMetrics'),
             query, form,
             new Map<String, Object>{
                 'environment' => (String) params.get('environment')

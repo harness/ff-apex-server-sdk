@@ -1,4 +1,4 @@
-SCRATCH_ORG=harnessffapexserversdk@example.com
+SCRATCH_ORG=test-gr01du71j1zs@example.com
 
 push:
 	sfdx force:source:push --forceoverwrite -u $(SCRATCH_ORG)

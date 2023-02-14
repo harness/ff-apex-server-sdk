@@ -6,11 +6,11 @@ public class FFFeatureEvaluator implements FFEvaluator {
        this.variationEvaluators = variationEvaluators;
     }
 
-    public FFFeatureVariation evaluate(FFFeatureConfig featureConfig, FFTarget target) {
+    public FFModelsFeatures.Variation evaluate(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target) {
        if(featureConfig == null || target == null || featureConfig.variations == null) return null;
        String evaluatedVariation = this.evaluateVariation(featureConfig, target);
        if(evaluatedVariation != null) {
-           for(FFFeatureVariation variation: featureConfig.variations) {
+           for(FFModelsFeatures.Variation variation: featureConfig.variations) {
                 if(variation.identifier == evaluatedVariation) {
                     return variation;
                 }
@@ -19,7 +19,7 @@ public class FFFeatureEvaluator implements FFEvaluator {
        return null;
     }
 
-    private String evaluateVariation(FFFeatureConfig featureConfig, FFTarget target) {
+    private String evaluateVariation(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target) {
         if(featureConfig.state == 'off') {
             return featureConfig.offVariation;
         }

@@ -3,6 +3,7 @@ public class FFClient {
     private final String sdkKey;
     private final FFConfig config;
     private final FFClientApi api;
+    private final FFMetricsApi metricsApi;
 
     private String environmentUUID;
     private String cluster = '1';
@@ -12,10 +13,11 @@ public class FFClient {
 
     public virtual class AuthException extends Exception {}
 
-    public FFClient(FFClientApi api, FFConfig config, String environmentUUID, String cluster) {
+    public FFClient(FFClientApi api, FFMetricsApi metricsApi, FFConfig config, String environmentUUID, String cluster) {
         this.sdkKey = sdkKey;
         this.config = config;
         this.api = api;
+        this.metricsApi = metricsApi;
         this.environmentUUID = environmentUUID;
         this.cluster = cluster;
     }
@@ -25,17 +27,16 @@ public class FFClient {
     }
 
     public static FFClient create(String sdkKey, FFConfig config) {
-        FFBaseCallout client = new FFBaseCallout(config);
-        FFClientApi api = new FFClientApi(client);
-        FFAuthService authService = new FFCachedAuthService(sdkKey, config, api);
-        FFAuthResult authResult = authService.authenticate();
-        client.setJWTToken(authResult.authToken);
-        return new FFClient(api, config, authResult.environmentUUID, authResult.cluster);
-    }
-
-    private String getEvalCacheKey(String identifier, String target) {
-        return config.getCache().getCacheNamespace() + '.' + config.getCache().getCachePartition() + '.feature' + this.removeSpecChars(identifier) +
-                removeSpecChars(target);
+        FFBaseCallout apiClient = new FFBaseCallout(config.baseUrl, 'ff_client_apis');
+        FFBaseCallout eventsClient = new FFBaseCallout(config.eventsUrl, 'ff_event_apis');
+        FFClientApi api = new FFClientApi(apiClient);
+        FFMetricsApi metricsApi = new FFMetricsApi(eventsClient);
+        System.debug(config.eventsUrl);
+        FFAuthService authService = new FFAuthServiceCached(sdkKey, config, api);
+        FFModels.AuthInfo authResult = authService.authenticate();
+        apiClient.setJWTToken(authResult.authToken);
+        eventsClient.setJWTToken(authResult.authToken);
+        return new FFClient(api, metricsApi, config, authResult.environmentUUID, authResult.cluster);
     }
 
     private String removeSpecChars(String s) {
@@ -43,37 +44,45 @@ public class FFClient {
         return text.replaceAll('[^a-zA-Z0-9\\s+]', '');
     }
 
-    private List<FFFeatureConfig> getFeatureConfigs() {
-        FFCache cache = this.config.getCache();
-        List<FFFeatureConfig> featureConfigs = (List<FFFeatureConfig>) cache.get(FFCacheKeys.getFeatureConfigsKey(cache));
+    public void updateCache() {
+        FFCache cache = this.config.cache;
+        List<FFModelsFeatures.FeatureConfig> features = this.api.getFeatureConfigs(this.envAndClusterRequestParams());
+        cache.put(FFCacheKeys.getFeatureConfigsKey(cache), features, this.config.featureConfigTimeToLive);
+        List<FFModelsFeatures.TargetSegment> segments = this.api.getTargetSegments(this.envAndClusterRequestParams());
+        cache.put(FFCacheKeys.getTargetSegmentsKey(cache), segments, this.config.featureConfigTimeToLive);
+    }
+
+    private List<FFModelsFeatures.FeatureConfig> getFeatureConfigs() {
+        FFCache cache = this.config.cache;
+        List<FFModelsFeatures.FeatureConfig> featureConfigs = (List<FFModelsFeatures.FeatureConfig>) cache.get(FFCacheKeys.getFeatureConfigsKey(cache));
         if(featureConfigs == null) {
-            List<FFFeatureConfig> updated = this.api.getFeatureConfigs(this.envAndClusterRequestParams());
-            cache.put(FFCacheKeys.getFeatureConfigsKey(cache), updated, this.config.getFeatureConfigTimeToLive());
+            List<FFModelsFeatures.FeatureConfig> updated = this.api.getFeatureConfigs(this.envAndClusterRequestParams());
+            cache.put(FFCacheKeys.getFeatureConfigsKey(cache), updated, this.config.featureConfigTimeToLive);
             return updated;
         }
         return featureConfigs;
     }
 
-    private List<FFTargetSegment> getTargetSegments() {
-        FFCache cache = this.config.getCache();
-        List<FFTargetSegment> targetSegments = (List<FFTargetSegment>) cache.get(FFCacheKeys.getTargetSegmentsKey(cache));
+    private List<FFModelsFeatures.TargetSegment> getTargetSegments() {
+        FFCache cache = this.config.cache;
+        List<FFModelsFeatures.TargetSegment> targetSegments = (List<FFModelsFeatures.TargetSegment>) cache.get(FFCacheKeys.getTargetSegmentsKey(cache));
         if(targetSegments == null) {
-            List<FFTargetSegment> updated = this.api.getTargetSegments(this.envAndClusterRequestParams());
-            cache.put(FFCacheKeys.getTargetSegmentsKey(cache), updated, this.config.getFeatureConfigTimeToLive());
+            List<FFModelsFeatures.TargetSegment> updated = this.api.getTargetSegments(this.envAndClusterRequestParams());
+            cache.put(FFCacheKeys.getTargetSegmentsKey(cache), updated, this.config.featureConfigTimeToLive);
             return updated;
         }
         return targetSegments;
     }
 
-    private static FFFeatureConfig getFlag(List<FFFeatureConfig> featureConfigs, String key) {
-        for(FFFeatureConfig featureConfig: featureConfigs) {
+    private static FFModelsFeatures.FeatureConfig getFlag(List<FFModelsFeatures.FeatureConfig> featureConfigs, String key) {
+        for(FFModelsFeatures.FeatureConfig featureConfig: featureConfigs) {
             if(featureConfig.feature == key) return featureConfig;
         }
         return null;
     }
 
-    private FFFeatureVariation offVariation(FFFeatureConfig featureConfig) {
-        for(FFFeatureVariation variation: featureConfig.variations){
+    private FFModelsFeatures.Variation offVariation(FFModelsFeatures.FeatureConfig featureConfig) {
+        for(FFModelsFeatures.Variation variation: featureConfig.variations){
             if(variation.identifier == featureConfig.offVariation) {
                 return variation;
             }
@@ -81,136 +90,130 @@ public class FFClient {
         return null;
     }
 
+    private void pushMetrics(FFTarget target, FFModelsFeatures.FeatureConfig config, FFModelsFeatures.Variation variation) {
+        if(this.config.metricsEnabled) {
+            try{
+                FFModelsEvents.Metrics metrics = new FFModelsEvents.Metrics();
+                metrics.targetData = new List<FFModelsEvents.TargetData>();
+                FFModelsEvents.TargetData targetData = new FFModelsEvents.TargetData();
+                targetData.identifier = target.identifier;
+                targetData.name = target.name;
+                if(target.attributes != null){
+                    for(String key: target.attributes.keySet()){
+                        targetData.attributes.add(FFClient.keyValueFor(key, String.valueOf(target.attributes.get(key))));
+                    }
+                }
+                metrics.targetData.add(targetData);
+                FFModelsEvents.MetricsData metricsData = new FFModelsEvents.MetricsData();
+                metricsData.timestamp = Datetime.now().getTime();
+                metricsData.count = 1;
+                metricsData.metricsType = FFModelsEvents.MetricsTypeEnum.FFMETRICS;
+                metricsData.attributes.add(FFClient.keyValueFor('featureName', config.feature));
+                metricsData.attributes.add(FFClient.keyValueFor('variationIdentifier', variation.identifier));
+                metricsData.attributes.add(FFClient.keyValueFor('featureValue', variation.value));
+                if(target.anonymous == true) {
+                    metricsData.attributes.add(FFClient.keyValueFor('target', 'anonymous'));
+                } else {
+                    metricsData.attributes.add(FFClient.keyValueFor('target', target.identifier));
+                }
+                metricsData.attributes.add(FFClient.keyValueFor('SDK_TYPE', 'server'));
+                metricsData.attributes.add(FFClient.keyValueFor('SDK_LANGUAGE', 'APEX'));
+                metrics.metricsData = new List<FFModelsEvents.MetricsData>();
+                metrics.metricsData.add(metricsData);
 
-    private FFFeatureVariation evaluateVariation(String key, FFTarget target, String kind) {
-        List<FFFeatureConfig> featureConfigs = this.getFeatureConfigs();
-        FFFeatureConfig featureConfig = FFClient.getFlag(featureConfigs, key);
+                Map<String, Object> params = new Map<String, Object> {
+                    'ffMetrics' => metrics,
+                    'environment' => this.environmentUUID,
+                    'cluster' => this.cluster
+                };
+                System.debug('Publishing Metrics');
+                this.metricsApi.postMetrics(params);
+            } catch(Exception e) {
+                System.debug('Could not send metrics, ignoring');
+                System.debug(e);
+                throw e;
+            }
+        }
+    }
+
+    private static FFModelsEvents.KeyValue keyValueFor(String key, String value){
+        FFModelsEvents.KeyValue keyValue = new FFModelsEvents.KeyValue();
+        keyValue.key = key;
+        keyValue.value = value;
+        return keyValue;
+    }
+
+
+    private FFModelsFeatures.Variation evaluateVariation(String key, FFTarget target, String kind) {
+        List<FFModelsFeatures.FeatureConfig> featureConfigs = this.getFeatureConfigs();
+        FFModelsFeatures.FeatureConfig featureConfig = FFClient.getFlag(featureConfigs, key);
         if(featureConfig == null || featureConfig.kind != kind){
             return null;
         }
-        FFSegmentEvaluator segmentEvaluator = new FFSegmentEvaluator(this.getTargetSegments());
+        FFSegmentEvaluator segmentEvaluator = new FFTargetSegmentEvaluator(this.getTargetSegments());
         FFFeatureEvaluator evaluator = FFFeatureEvaluator.defaultEvaluators(segmentEvaluator);
         FFPrerequisites prerequisites = new FFPrerequisites(featureConfigs, evaluator);
         if(!prerequisites.passesPrerequisiteChecks(featureConfig, target)) {
-            return this.offVariation(featureConfig);
+            FFModelsFeatures.Variation offVariant = this.offVariation(featureConfig);
+            if(offVariant != null){
+                this.pushMetrics(target, featureConfig, offVariant);
+            }
+            return offVariant;
         }
-        return evaluator.evaluate(featureConfig, target);
+        FFModelsFeatures.Variation variation = evaluator.evaluate(featureConfig, target);
+        if(variation != null){
+            this.pushMetrics(target, featureConfig, variation);
+        }
+        return variation;
     }
 
-    // public List<FFEvaluation> fetchEvaluations() {
-    //     Map<String, Object> params = new Map<String, Object>{
-    //         'environmentUUID' => this.envUUID,
-    //         'target' => this.target.identifier,
-    //         'cluster' => this.cluster
-    //     };
-    //     try {
-    //         List<FFEvaluation> evals = api.getEvaluations(params);
-    //         for (FFEvaluation eval: evals) {
-    //             config.getCache().put(this.getEvalCacheKey(eval.flag, this.target.identifier), eval, config.getEvalExpireAfter());
-    //         }
-    //         return evals;
-    //     } catch (FFBase.ApiException e) {
-    //         if (FFClient.retryCount <= FFClient.maxRetry && e.getStatusCode() == 403 && authenticate()) {
-    //             sleep(waitInterval * FFClient.retryCount);
-    //             return fetchEvaluations();
-    //         }
-    //         throw e;
-    //     }
-    // }
-
-    // public FFEvaluation evaluate(String identifier, Object defaultValue) {
-    //     Map<String, Object> params = new Map<String, Object>{
-    //         'feature' => identifier,
-    //         'environmentUUID' => this.envUUID,
-    //         'target' => this.target.identifier,
-    //         'cluster' => this.cluster
-    //     };
-    //     try {
-    //         FFEvaluation eval = (FFEvaluation) config.getCache().get(this.getEvalCacheKey(identifier, this.target.identifier));
-    //         if (eval != null) {
-    //             System.debug('Loading evaluation from cache: ' + identifier);
-    //             return eval;
-    //         }
-    //         eval = api.getEvaluationByIdentifier(params);
-    //         System.debug('Loading evaluation from remote url ' + identifier);
-    //         config.getCache().put(this.getEvalCacheKey(eval.flag, this.target.identifier), eval, config.getEvalExpireAfter());
-    //         return eval;
-    //     } catch (FFBase.ApiException e) {
-    //         if (FFClient.retryCount <= FFClient.maxRetry && e.getStatusCode() == 403 && authenticate()) {
-    //             sleep(waitInterval * FFClient.retryCount);
-    //             return evaluate(identifier, defaultValue);
-    //         }
-    //         throw e;
-    //     }
-    // }
-
-    public FFEvaluation evaluate(String identifier, Object defaultValue) {
-        return null;
-    }
-
-    public Boolean evaluate(String identifier, Boolean defaultValue) {
+    public Boolean boolVariation(String key, FFTarget target, Boolean defaultValue) {
+        FFModelsFeatures.Variation variation = evaluateVariation(key, target, 'boolean');
+        if(variation == null) return defaultValue;
         try {
-            FFEvaluation evaluation = evaluate(identifier, (Object) defaultValue);
-            if (!evaluation.kind.equals('boolean')) {
-                return defaultValue;
-            }
-            return evaluation.value.toLowerCase() == 'true';
-        } catch (FFBase.ApiException e) {
-            System.debug('Exception raised on bool evaluate with message: ' + e.getMessage());
-            return defaultValue;
+            return Boolean.valueOf(variation.value);
+        } catch(Exception e) {
+            System.debug(e);
         }
+        return defaultValue;
     }
 
-    public String evaluate(String identifier, String defaultValue) {
+    public Double numberVariation(String key, FFTarget target, Double defaultValue) {
+        FFModelsFeatures.Variation variation = evaluateVariation(key, target, 'int');
+        if(variation == null) return defaultValue;
         try {
-            FFEvaluation evaluation = evaluate(identifier, (Object) defaultValue);
-            if (!evaluation.kind.equals('string')) {
-                return defaultValue;
-            }
-            return evaluation.value;
-        } catch (FFBase.ApiException e) {
-            System.debug('Exception raised on string evaluate with message: ' + e.getMessage());
-            return defaultValue;
+            return Double.valueOf(variation.value);
+        } catch(Exception e) {
+            System.debug(e);
         }
+        return defaultValue;
     }
 
-    public Double evaluate(String identifier, Double defaultValue) {
+    public String stringVariation(String key, FFTarget target, String defaultValue) {
+        FFModelsFeatures.Variation variation = evaluateVariation(key, target, 'string');
+        if(variation == null) return defaultValue;
         try {
-            FFEvaluation evaluation = evaluate(identifier, (Object) defaultValue);
-            if (!evaluation.kind.equals('int')) {
-                return defaultValue;
-            }
-            return Double.valueOf(evaluation.value);
-        } catch (FFBase.ApiException e) {
-            System.debug('Exception raised on number evaluate with message: ' + e.getMessage());
-            return defaultValue;
+            return String.valueOf(variation.value);
+        } catch(Exception e) {
+            System.debug(e);
         }
+        return defaultValue;
     }
 
-    public Map<String, Object> evaluate(String identifier, Map<String, Object> defaultValue) {
+    public Object jsonVariation(String key, FFTarget target, Object defaultValue, Type type) {
+        FFModelsFeatures.Variation variation = evaluateVariation(key, target, 'json');
+        if(variation == null) return defaultValue;
         try {
-            FFEvaluation evaluation = evaluate(identifier, (Object) defaultValue);
-            if (!evaluation.kind.equals('json')) {
-                return defaultValue;
-            }
-            String value = evaluation.value.unescapeUnicode();
-            if (value.length() > 2 && value.startsWith('"')) {
-                value = value.substring(1, value.length() - 1);
-            }
-            return (Map<String, Object>) JSON.deserializeUntyped(value);
-        } catch (FFBase.ApiException e) {
-            System.debug('Exception raised on json evaluate with message: ' + e.getMessage());
-            return defaultValue;
+            JsonParser parser = Json.createParser(variation.value);
+            parser.nextToken();
+            return parser.readValueAs(type);
+        } catch(Exception e) {
+            System.debug(e);
         }
+        return defaultValue;
     }
 
-    private void sleep(Long ms) {
-        
-        Long startTime = DateTime.now().getTime();
-        Long finishTime = DateTime.now().getTime();
-        while ((finishTime - startTime) < ms) {
-            //sleep for 9s
-            finishTime = DateTime.now().getTime();
-        }
+    public static FFClientBuilder builder(String sdkKey, FFConfig config){
+        return new FFClientBuilder(sdkKey, config);
     }
 }

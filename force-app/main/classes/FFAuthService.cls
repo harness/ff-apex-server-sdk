@@ -1,3 +1,3 @@
 public interface FFAuthService {
-    FFAuthResult authenticate();
+    FFModels.AuthInfo authenticate();
 } 

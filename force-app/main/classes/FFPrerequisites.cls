@@ -1,19 +1,19 @@
 public class FFPrerequisites {
 
-    private final List<FFFeatureConfig> featureConfigs;
+    private final List<FFModelsFeatures.FeatureConfig> featureConfigs;
     private final FFEvaluator evaluator;
 
-    public FFPrerequisites(List<FFFeatureConfig> featureConfigs, FFEvaluator evaluator) {
+    public FFPrerequisites(List<FFModelsFeatures.FeatureConfig> featureConfigs, FFEvaluator evaluator) {
         this.featureConfigs = featureConfigs;
         this.evaluator = evaluator;
     }
 
-    public Boolean passesPrerequisiteChecks(FFFeatureConfig featureConfig, FFTarget target) {
+    public Boolean passesPrerequisiteChecks(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target) {
         if(featureConfig.prerequisites != null && featureConfig.prerequisites.size() > 0){
-            for(FFFeaturePrerequisite prerequisite: featureConfig.prerequisites) {
-                FFFeatureConfig prereqFeatureConfig = this.getFeatureConfig(prerequisite.feature);
+            for(FFModelsFeatures.Prerequisite prerequisite: featureConfig.prerequisites) {
+                FFModelsFeatures.FeatureConfig prereqFeatureConfig = this.getFeatureConfig(prerequisite.feature);
                 if(prereqFeatureConfig == null) return true;
-                FFFeatureVariation variation = this.evaluator.evaluate(prereqFeatureConfig, target);
+                FFModelsFeatures.Variation variation = this.evaluator.evaluate(prereqFeatureConfig, target);
                 if(variation == null) return true;
                 if(!prerequisite.variations.contains(variation.identifier)){
                     return false;
@@ -26,8 +26,8 @@ public class FFPrerequisites {
         return true;
     }
 
-    private FFFeatureConfig getFeatureConfig(String identifier) {
-        for(FFFeatureConfig featureConfig: this.featureConfigs) {
+    private FFModelsFeatures.FeatureConfig getFeatureConfig(String identifier) {
+        for(FFModelsFeatures.FeatureConfig featureConfig: this.featureConfigs) {
             if(featureConfig.feature == identifier) return featureConfig;
         }
         return null;

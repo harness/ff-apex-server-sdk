@@ -1,4 +1,4 @@
 public interface FFFeatureVariationEvaluator {
-    String evaluateVariation(FFFeatureConfig featureConfig, FFTarget target);
+    String evaluateVariation(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target);
 }
 
