@@ -31,17 +31,11 @@ public class FFClient {
         FFBaseCallout eventsClient = new FFBaseCallout(config.eventsUrl, 'ff_event_apis');
         FFClientApi api = new FFClientApi(apiClient);
         FFMetricsApi metricsApi = new FFMetricsApi(eventsClient);
-        System.debug(config.eventsUrl);
         FFAuthService authService = new FFAuthServiceCached(sdkKey, config, api);
         FFModels.AuthInfo authResult = authService.authenticate();
         apiClient.setJWTToken(authResult.authToken);
         eventsClient.setJWTToken(authResult.authToken);
         return new FFClient(api, metricsApi, config, authResult.environmentUUID, authResult.cluster);
-    }
-
-    private String removeSpecChars(String s) {
-        String text = s.substring(0);
-        return text.replaceAll('[^a-zA-Z0-9\\s+]', '');
     }
 
     public void updateCache() {
