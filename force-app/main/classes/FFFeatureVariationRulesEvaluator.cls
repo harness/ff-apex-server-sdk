@@ -9,14 +9,7 @@ public class FFFeatureVariationRulesEvaluator implements FFFeatureVariationEvalu
        if(featureConfig.rules == null) return null;
        for(FFModelsFeatures.ServingRule servingRule: this.priorityOrderedRulesFrom(featureConfig)) {
             if(this.noClausesEvaluateToFalse(servingRule.clauses, target)) {
-                if(servingRule.serve != null){
-                    if(servingRule.serve.distribution != null) {
-                        return FFDistributionEvaluator.variationFromDistribution(servingRule.serve);
-                    }
-                    if(servingRule.serve.variation != null) {
-                        return servingRule.serve.variation;
-                    }
-                }
+                return FFDistributionEvaluator.variationFromServe(servingRule.serve);
             }
        }
        return null;

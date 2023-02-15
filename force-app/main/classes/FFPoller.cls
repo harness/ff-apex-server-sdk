@@ -3,11 +3,8 @@ public class FFPoller implements Schedulable {
     private Integer iteration;
     private Configuration configuration;
 
-    // CONSTRUCTORS
-
     public FFPoller(Callable instance) {
         this.configuration = new Configuration();
-
         this.configuration.pollInstance = instance;
         this.iteration = 1;
     }
@@ -16,12 +13,8 @@ public class FFPoller implements Schedulable {
         this.configuration = configuration;
         this.iteration = iteration;
     }
-
-    // PUBLIC
-
     public FFPoller untilTrue(Callable instance) {
         this.configuration.checkCompletionInstance = instance;
-
         return this;
     }
 
@@ -39,18 +32,11 @@ public class FFPoller implements Schedulable {
 
     public FFPoller timeout(Integer seconds) {
         this.configuration.timeout = seconds;
-
         return this;
     }
 
     public FFPoller staticDelay(Integer delayInSeconds) {
         return this.addDelay(1, delayInSeconds);
-    }
-
-    public FFPoller incrementalDelaysPreset() {
-        return this.addDelay(10, 15)
-            .addDelay(30, 30)
-            .addDelay(100, 120);
     }
 
     public FFPoller addDelay(Integer upperIteration, Integer delayInSeconds) {
@@ -82,7 +68,7 @@ public class FFPoller implements Schedulable {
 
         public Configuration() {
             this.startTime = Datetime.now();
-            this.timeout = 86400;
+            this.timeout = 0;
         }
     }
 
@@ -114,8 +100,6 @@ public class FFPoller implements Schedulable {
         }
     
         // PUBLIC
-
-
         public void execute(QueueableContext context) {
             FFPollAsyncFinalizer finalizer = new FFPollAsyncFinalizer(this);
             System.attachFinalizer(finalizer);
@@ -169,12 +153,14 @@ public class FFPoller implements Schedulable {
         }
     
         private void validateTimeout(Configuration configuration, Datetime now) {
-            Long nowMs = now.getTime();
-            Long startTimeMs = configuration.startTime.getTime();
-    
-            Integer differenceSeconds = (Integer) ((nowMs - startTimeMs) / 1000);
-            if (differenceSeconds >= configuration.timeout) {
-                throw new PollingException('Polling timeout reached');
+            if(configuration.timeout != 0) {
+                Long nowMs = now.getTime();
+                Long startTimeMs = configuration.startTime.getTime();
+        
+                Integer differenceSeconds = (Integer) ((nowMs - startTimeMs) / 1000);
+                if (differenceSeconds >= configuration.timeout) {
+                    throw new PollingException('Polling timeout reached');
+                }
             }
         }
     
@@ -203,12 +189,6 @@ public class FFPoller implements Schedulable {
 
     private class FFPollAsyncFinalizer implements Finalizer {
         private FFPollAsync outerClass;
-
-        // CONSTRUCTOR
-
-        // Note: this is to overcome a non anologous Java limitation.
-        // See: https://developer.salesforce.com/forums/?id=906F0000000BTo1IAG
-        // See: https://salesforce.stackexchange.com/questions/101056/how-to-call-outerclass-method-in-a-wrapper-class
         private FFPollAsyncFinalizer(FFPollAsync outerClass) {
             this.outerClass = outerClass;
         }

@@ -44,13 +44,15 @@ public abstract class FFModelsFeatures {
         public Boolean negate { get; set; }
     }
 
-    public class ServingRule {
+    public class ServingRule implements Comparable {
         public String ruleId { get; set; }
         public Integer priority { get; set; }    
         public List<Clause> clauses { get; set; }    
         public Serve serve { get; set; }    
         public Integer compareTo(Object compareTo) {
-            return this.priority - ((ServingRule)compareTo).priority;
+            if(this.priority != null && compareTo != null && ((ServingRule)compareTo).priority != null)
+                return this.priority - ((ServingRule)compareTo).priority;
+            return 0;
         }    
     }
     

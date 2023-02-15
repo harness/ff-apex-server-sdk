@@ -23,7 +23,19 @@ public abstract class FFDistributionEvaluator {
         }
     }
 
-   public static string variationFromDistribution(FFModelsFeatures.Serve serve){
+    public static string variationFromServe(FFModelsFeatures.Serve serve) {
+        if(serve != null){
+            if(serve.distribution != null) {
+                return FFDistributionEvaluator.variationFromDistribution(serve);
+            }
+            if(serve.variation != null) {
+                return serve.variation;
+            }
+        }
+        return null;
+    }
+
+   private static string variationFromDistribution(FFModelsFeatures.Serve serve){
         if(serve.distribution != null && serve.distribution.variations != null){
             Weights weights = FFDistributionEvaluator.weights(serve.distribution.variations);
             Integer selectedLocation = FFDistributionEvaluator.selectLocation(weights.total);
