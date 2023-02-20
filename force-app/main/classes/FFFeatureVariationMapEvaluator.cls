@@ -19,11 +19,9 @@ public class FFFeatureVariationMapEvaluator implements FFFeatureVariationEvaluat
     }
 
     private Boolean hasTargetIn(List<FFModelsFeatures.TargetMap> variationMapTargets, String targetIdentifier) {
-        if(variationMapTargets != null) {
-            for(FFModelsFeatures.TargetMap target: variationMapTargets) {
-                if(target != null && target.identifier == targetIdentifier) {
-                    return true;
-                }
+        for(FFModelsFeatures.TargetMap target: variationMapTargets) {
+            if(target != null && target.identifier == targetIdentifier) {
+                return true;
             }
         }
         return false;

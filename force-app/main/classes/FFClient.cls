@@ -142,6 +142,7 @@ public class FFClient {
         List<FFModelsFeatures.FeatureConfig> featureConfigs = this.getFeatureConfigs();
         FFModelsFeatures.FeatureConfig featureConfig = FFClient.getFlag(featureConfigs, key);
         if(featureConfig == null || featureConfig.kind != kind){
+            System.debug('Kind does not match ' + kind);
             return null;
         }
         FFSegmentEvaluator segmentEvaluator = new FFTargetSegmentEvaluator(this.getTargetSegments());
