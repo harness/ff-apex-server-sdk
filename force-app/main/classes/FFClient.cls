@@ -1,6 +1,5 @@
 public class FFClient {
 
-    private final String sdkKey;
     private final FFConfig config;
     private final FFClientApi api;
     private final FFMetricsApi metricsApi;
@@ -14,7 +13,6 @@ public class FFClient {
     public virtual class AuthException extends Exception {}
 
     public FFClient(FFClientApi api, FFMetricsApi metricsApi, FFConfig config, String environmentUUID, String cluster) {
-        this.sdkKey = sdkKey;
         this.config = config;
         this.api = api;
         this.metricsApi = metricsApi;
@@ -124,8 +122,6 @@ public class FFClient {
                 this.metricsApi.postMetrics(params);
             } catch(Exception e) {
                 System.debug('Could not send metrics, ignoring');
-                System.debug(e);
-                throw e;
             }
         }
     }
@@ -136,7 +132,6 @@ public class FFClient {
         keyValue.value = value;
         return keyValue;
     }
-
 
     private FFModelsFeatures.Variation evaluateVariation(String key, FFTarget target, String kind) {
         List<FFModelsFeatures.FeatureConfig> featureConfigs = this.getFeatureConfigs();

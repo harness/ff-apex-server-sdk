@@ -1,4 +1,3 @@
-@isTest
 public class FFResponseMock implements HttpCalloutMock {
     private final HttpResponse response;
     private HttpRequest request;

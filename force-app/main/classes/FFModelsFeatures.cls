@@ -108,13 +108,6 @@ public abstract class FFModelsFeatures {
         public Integer modifiedAt { get; set; }
         //OPTIONAL
         public Integer version { get; set; }
-    }
-
-    public class Evaluation {
-        public String flag { get; set; }
-        public String value { get; set; }
-        public String kind { get; set; }
-        public String identifier { get; set; }
-    }    
+    } 
     
 }

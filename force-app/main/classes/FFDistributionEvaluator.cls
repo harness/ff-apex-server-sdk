@@ -1,28 +1,5 @@
 public abstract class FFDistributionEvaluator {
 
-    class Weights {
-        private final List<Integer> weights {get; private set;}
-        private final Integer total { get; private set;}
-        public Weights(List<Integer> weights, Integer total){
-            this.weights = weights;
-            this.total = total;
-        }
-
-        public Integer pickIndexFor(Integer location) {
-            if(this.weights.size() == 1) return 0;
-            Integer position = 0;
-            Integer index = 0;
-            for(Integer weight: this.weights) {
-                if(location < position + weight) {
-                    return index;
-                }
-                index++;
-                position += weight;
-            }
-            return this.weights.size() - 1;
-        }
-    }
-
     public static string variationFromServe(FFModelsFeatures.Serve serve, FFTarget target) {
         if(serve != null){
             if(serve.distribution != null) {
@@ -65,7 +42,6 @@ public abstract class FFDistributionEvaluator {
         Double full = (Double)hexToDecimal(hash) / Double.valueOf('1152921504606846975');
         Double hashNumber = (Double)((Decimal)(full)).setScale(8);
         Integer bucketID = (Integer)Math.floor(hashNumber * 100);
-        System.debug(bucketID);
         return bucketID <= percentage;
    }
 }

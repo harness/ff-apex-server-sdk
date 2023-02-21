@@ -18,13 +18,8 @@ private class FFMetricsApiTest {
             'ffMetrics' => new FFModelsEvents.Metrics()
         };
 
-        FFBaseCallout client;
-        FFMetricsApi api;
-        String js = '';
-
-        client = new FFBaseCallout(null, '');
-        api = new FFMetricsApi(client);
-        ((FFBase.ApiKeyAuth)client.getAuthentication('ApiKeyAuth')).setApiKey('foo-bar-api-key');
+        FFBaseCallout client = new FFBaseCallout(null, '');
+        FFMetricsApi api = new FFMetricsApi(client);
 
         api.postMetrics(params);
         client = new FFBaseCallout(null, '');

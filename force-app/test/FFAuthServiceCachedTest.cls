@@ -1,17 +1,6 @@
 @isTest
 private class FFAuthServiceCachedTest {
 
-    private class MockCache implements FFCache {
-        public Map<String, Object> cache {get;set;}
-        public MockCache() {
-            this.cache = new Map<String, Object>();
-        }
-        public void put(String key, Object value, Integer ttl) { this.cache.put(key, value); }
-        public Object get(String key) { return this.cache.get(key);}
-        public String getCacheNamespace() { return 'TEST'; }
-        public String getCachePartition() { return 'TEST'; }
-    }
-
     private class MockAuthenticator implements FFAuthenticator {
         public Integer called { get; set; }
         public Integer throwTimes { get; set; }
@@ -37,7 +26,7 @@ private class FFAuthServiceCachedTest {
 
     @isTest
     private static void shouldStoreClaimsInCacheWithJWT() {
-       FFConfig config = FFConfig.builder().cache(new MockCache()).build();
+       FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
        MockAuthenticator authenticator = new MockAuthenticator(response);
@@ -54,7 +43,7 @@ private class FFAuthServiceCachedTest {
 
     @isTest
     private static void shouldRetryAuthenticationOn403() {
-       FFConfig config = FFConfig.builder().cache(new MockCache()).build();
+       FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
        MockAuthenticator authenticator = new MockAuthenticator(response, 2); // FAIL TWICE
@@ -67,7 +56,7 @@ private class FFAuthServiceCachedTest {
 
     @isTest
     private static void shouldRetry10TimesMaxByDefault() {
-       FFConfig config = FFConfig.builder().cache(new MockCache()).build();
+       FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
        MockAuthenticator authenticator = new MockAuthenticator(response, 20); // FAIL More than max times
@@ -82,7 +71,7 @@ private class FFAuthServiceCachedTest {
 
     @isTest
     private static void shouldRetryMaxTimesSpecifiedByConfig() {
-       FFConfig config = FFConfig.builder().cache(new MockCache()).authRetries(4).build();
+       FFConfig config = FFConfig.builder().cache(new FFMockCache()).authRetries(4).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
        MockAuthenticator authenticator = new MockAuthenticator(response, 20); // FAIL More than max times

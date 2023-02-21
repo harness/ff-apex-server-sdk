@@ -7,7 +7,7 @@ public class FFPrerequisites {
         this.featureConfigs = featureConfigs;
         this.evaluator = evaluator;
     }
-
+    
     public Boolean passesPrerequisiteChecks(FFModelsFeatures.FeatureConfig featureConfig, FFTarget target) {
         if(featureConfig.prerequisites != null && featureConfig.prerequisites.size() > 0){
             for(FFModelsFeatures.Prerequisite prerequisite: featureConfig.prerequisites) {

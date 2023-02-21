@@ -54,32 +54,6 @@ public class FFTarget {
         this.name = name;
     }
 
-    public static FFTarget getExample() {
-        FFTarget target = new FFTarget();
-        target.identifier = 'john-doe';
-        target.name = 'John Doe';
-        target.attributes = (Map<String, Object>) JSON.deserializeUntyped('{"age":20,"location":"Belfast"}');
-        return target;
-    }
-
-    public Boolean equals(Object obj) {
-        if (obj instanceof FFTarget) {
-            FFTarget target = (FFTarget) obj;
-            return this.identifier == target.identifier
-                && this.name == target.name
-                && this.attributes == target.attributes;
-        }
-        return false;
-    }
-
-    public Integer hashCode() {
-        Integer hashCode = 43;
-        hashCode = (17 * hashCode) + (identifier == null ? 0 : System.hashCode(identifier));
-        hashCode = (17 * hashCode) + (name == null ? 0 : System.hashCode(name));
-        hashCode = (17 * hashCode) + (attributes == null ? 0 : System.hashCode(attributes));
-        return hashCode;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
