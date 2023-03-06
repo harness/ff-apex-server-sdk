@@ -1,153 +1,89 @@
 @isTest
 private class FFClientApiTest {
 
-    class MockCache implements FFCache {
-        private Map<String, Object> cache;
-        public MockCache() {
-            cache = new Map<String,Object>();
-        }
-
-        public void put(String key, Object value, Integer ttl) {
-            cache.put(key, value);
-        }
-
-        public Object get(String key) {
-            return cache.get(key);
-        }
-
-        public String getCacheNamespace() {
-            return 'test';
-        }
-
-        public String getCachePartition() {
-            return 'test';
-        }
-    }
-
-    /**
-     * Authenticate with the admin server.
-     *
-     * Used to retrieve all target segments for certain account id.
-     */
     @isTest
     private static void authenticateTest() {
+        FFModels.AuthenticationResponse mockResponse = new FFModels.AuthenticationResponse();
+        mockResponse.authToken = 'testToken';
+
         HttpResponse res = new HttpResponse();
+        res.setHeader('Content-Type', 'application/json');
+        res.setBody(JSON.serialize(mockResponse));
         res.setStatusCode(200);
         res.setStatus('OK');
+
         Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
 
-        FFAuthenticationRequest req = new FFAuthenticationRequest();
-
+        FFModels.AuthenticationRequest req = new FFModels.AuthenticationRequest();
         Map<String, Object> params = new Map<String, Object>{
             'ffAuthenticationRequest' => req
         };
-
-        MockCache cache = new MockCache();
-        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFBaseCallout client = new FFBaseCallout('test', 'test');
         FFClientApi api = new FFClientApi(client);
+        FFModels.AuthenticationResponse actualResponse = (FFModels.AuthenticationResponse) api.authenticate(params);
+        System.assertEquals(mockResponse.authToken, actualResponse.authToken);
+    }
 
-        FFAuthenticationResponse response;
-        FFAuthenticationResponse expectedResponse;
-        String js = '';
-
-        js = JSON.serialize(FFAuthenticationResponse.getExample());
+    @isTest
+    private static void getFeatureConfigsTest() {
+        List<FFModelsFeatures.FeatureConfig> mockResponse = new List<FFModelsFeatures.FeatureConfig>();
+        FFModelsFeatures.FeatureConfig feature = new FFModelsFeatures.FeatureConfig();
+        feature.kind = 'string';
+        feature.offVariation = 'off';
+        feature.version = 5;
+        feature.project = 'p';
+        feature.prerequisites = new List<FFModelsFeatures.Prerequisite>();
+        String serielized = JSON.serialize(mockResponse);
+        HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'application/json');
-        res.setBody(js);
-        expectedResponse = FFAuthenticationResponse.getExample();
-        response = (FFAuthenticationResponse) api.authenticate(params);
-        System.assertEquals(expectedResponse, response);
-    }
-
-    /**
-     * Get feature evaluations for target
-     *
-     * 
-     */
-    @isTest
-    private static void getEvaluationByIdentifierTest() {
-        HttpResponse res = new HttpResponse();
+        res.setBody(serielized);
         res.setStatusCode(200);
         res.setStatus('OK');
+
         Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
 
         Map<String, Object> params = new Map<String, Object>{
-            'environmentUUID' => 'null',
-            'feature' => 'null',
-            'target' => 'null',
-            'cluster' => 'null'
+            'environmentUUID' => 'test',
+            'cluster' => 'test'
         };
-
-        MockCache cache = new MockCache();
-        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFBaseCallout client = new FFBaseCallout('test', 'test');
         FFClientApi api = new FFClientApi(client);
+        String actualResponse = JSON.serialize(api.getFeatureConfigs(params));
+        System.assertEquals(serielized, actualResponse);
+    }
 
-        FFEvaluation response;
-        FFEvaluation expectedResponse;
-        String js = '';
-
-        js = JSON.serialize(FFEvaluation.getExample());
+    @isTest
+    private static void getTargetSegmentsTest() {
+        List<FFModelsFeatures.TargetSegment> mockResponse = new List<FFModelsFeatures.TargetSegment>();
+        FFModelsFeatures.TargetSegment segment = new FFModelsFeatures.TargetSegment();
+        FFModelsFeatures.Tag tag = new FFModelsFeatures.Tag();
+        tag.name = 'a';
+        tag.value = 'b';
+        segment.tags = new List<FFModelsFeatures.Tag>{ tag };
+        segment.createdAt = 1234;
+        segment.environment = 'test';
+        segment.excluded = new List<FFTarget>();
+        segment.included = new List<FFTarget>();
+        segment.identifier = '1234';
+        segment.name = 'test';
+        segment.modifiedAt = 1234;
+        segment.version = 5;
+        String serielized = JSON.serialize(mockResponse);
+        HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'application/json');
-        res.setBody(js);
-        expectedResponse = FFEvaluation.getExample();
-        response = (FFEvaluation) api.getEvaluationByIdentifier(params);
-        System.assertEquals(expectedResponse, response);
-    }
-
-    /**
-     * Get feature evaluations for target
-     *
-     * 
-     */
-    @isTest
-    private static void getEvaluationsTest() {
-        HttpResponse res = new HttpResponse();
+        res.setBody(serielized);
         res.setStatusCode(200);
         res.setStatus('OK');
+
         Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
 
         Map<String, Object> params = new Map<String, Object>{
-            'environmentUUID' => 'null',
-            'target' => 'null',
-            'cluster' => 'null'
+            'environmentUUID' => 'test',
+            'cluster' => 'test'
         };
-
-        MockCache cache = new MockCache();
-        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
+        FFBaseCallout client = new FFBaseCallout('test', 'test');
         FFClientApi api = new FFClientApi(client);
-        List<FFEvaluation> response;
-        List<FFEvaluation> expectedResponse;
-        String js = '';
-
-        // js = JSON.serialize(List.getExample());
-        // res.setHeader('Content-Type', 'application/json');
-        // res.setBody(js);
-        // expectedResponse = List.getExample();
-        // response = (List<FFEvaluation>) api.getEvaluations(params);
-        // System.assertEquals(expectedResponse, response);
-    }
-
-    /**
-     * Stream endpoint.
-     *
-     * 
-     */
-    @isTest
-    private static void streamTest() {
-        HttpResponse res = new HttpResponse();
-        res.setStatusCode(200);
-        res.setStatus('OK');
-        Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
-
-        Map<String, Object> params = new Map<String, Object>{
-            'apIKey' => 'null',
-            'cluster' => 'null'
-        };
-
-        String js = '';
-
-        MockCache cache = new MockCache();
-        FFBaseCallout client = new FFBaseCallout(FFConfig.builder().cache(cache).build());
-        FFClientApi api = new FFClientApi(client);
-        api.stream(params);
+        String actualResponse = JSON.serialize(api.getTargetSegments(params));
+        System.assertEquals(serielized, actualResponse);
     }
 }

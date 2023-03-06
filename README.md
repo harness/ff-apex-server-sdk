@@ -38,27 +38,44 @@ sfdx force:source:deploy --targetusername='YOUR TARGET ORG' --sourcepath='force-
 ### Code Sample
 The following is a complete code example that you can use to test the `harnessappdemodarkmode` Flag you created on the Harness Platform. When you run the code it will:
 - Connect to the FF service.
-- Report the value of the Flag until the connection is closed. Every time the harnessappdemodarkmode Flag is toggled on or off on the Harness Platform, the updated value is reported.
+- Report the value of the Flag.
 - Close the SDK.
-
-
 
 ```apex
 // Set flagKey to the feature flag key you want to evaluate.
 String flag = 'harnessappdemodarkmode';
 
+
 // set cache Namespace and Partition
 FFOrgCache cache = new FFOrgCache('local', 'basic');
-FFConfig config = new FFConfig.builder().cache(cache).build();
+FFConfig config = new FFConfig.builder()
+    .cache(cache)
+    .metricsEnabled() //Enable Metrics publishing
+    .build();
+
+// Create Client
+FFClient client = FFClient.builder('Your SDK Key', config).build();
 
 // Set up the target properties.
 FFTarget target = FFTarget.builder().identifier('Harness').name('Harness').build();
 
-FFClient client = new FFClient('Your SDK Key', target, config);
-
 // Bool evaluation
-Boolean value = client.evaluate(flag, false);
+Boolean value = client.boolVariation(flag, target, false);
 System.debug('Feature flag ' + flag + ' is '+ value + ' for this user');
+```
+
+### Regular Polling
+```apex
+// set cache Namespace and Partition
+FFOrgCache cache = new FFOrgCache('local', 'basic');
+FFConfig config = new FFConfig.builder()
+    .cache(cache)
+    .build();
+
+// Start Polling to update the cache
+FFClient.builder('Your SDK Key', config)
+    .withPolling(60) // Poll every 60 seconds
+    .build();
 ```
 
 ### Running the example

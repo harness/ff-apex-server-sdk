@@ -4,16 +4,21 @@ public class FFOrgCache implements FFCache {
     private String cachePartition = 'basic';
 
     public FFOrgCache(String cacheNamespace, String cachePartition) {
-        if (cacheNamespace != null && cacheNamespace.equals('')) {
-            throw new IllegalArgumentException('cacheNamespace cannot be empty');
+        if(cacheNamespace != null) {
+            if (cacheNamespace.equals('')) {
+                throw new IllegalArgumentException('cacheNamespace cannot be empty');
+            } else {
+                this.cacheNamespace = cacheNamespace;
+            }
         }
 
-        if (cachePartition != null && cachePartition.equals('')) {
-            throw new IllegalArgumentException('cachePartition cannot be empty');
+        if (cachePartition != null){
+            if(cachePartition.equals('')) {
+                throw new IllegalArgumentException('cachePartition cannot be empty');
+            } else {
+                this.cachePartition = cachePartition;
+            }
         }
-
-        this.cacheNamespace = cacheNamespace;
-        this.cachePartition = cachePartition;
     }
 
     public void put(String key, Object value, Integer ttl) {

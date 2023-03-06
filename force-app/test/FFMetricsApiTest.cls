@@ -15,19 +15,14 @@ private class FFMetricsApiTest {
         Map<String, Object> params = new Map<String, Object>{
             'environment' => 'null',
             'cluster' => 'null',
-            'ffMetrics' => new FFMetrics()
+            'ffMetrics' => new FFModelsEvents.Metrics()
         };
 
-        FFBaseCallout client;
-        FFMetricsApi api;
-        String js = '';
-
-        client = new FFBaseCallout(FFConfig.builder().build());
-        api = new FFMetricsApi(client);
-        ((FFBase.ApiKeyAuth)client.getAuthentication('ApiKeyAuth')).setApiKey('foo-bar-api-key');
+        FFBaseCallout client = new FFBaseCallout(null, '');
+        FFMetricsApi api = new FFMetricsApi(client);
 
         api.postMetrics(params);
-        client = new FFBaseCallout(FFConfig.builder().build());
+        client = new FFBaseCallout(null, '');
         api = new FFMetricsApi(client);
         api.postMetrics(params);
     }
