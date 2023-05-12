@@ -103,9 +103,9 @@ public abstract class FFModelsFeatures {
         //OPTIONAL
         public List<Clause> rules { get; set; }
         //OPTIONAL
-        public Integer createdAt { get; set; }
+        public Long createdAt { get; set; }
         //OPTIONAL
-        public Integer modifiedAt { get; set; }
+        public Long modifiedAt { get; set; }
         //OPTIONAL
         public Integer version { get; set; }
     } 
