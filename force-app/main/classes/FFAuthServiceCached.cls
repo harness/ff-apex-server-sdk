@@ -17,7 +17,7 @@ public class FFAuthServiceCached implements FFAuthService {
     }
 
     private void updateAuthInCache(FFModels.AuthInfo claims) {
-        this.config.cache.put(this.getAuthCacheKey(), new Map<String, String>{
+        this.config.cache.putAuth(this.getAuthCacheKey(), new Map<String, String>{
             CACHE_KEY_ENVIRONMENT => claims.environmentUUID,
             CACHE_KEY_CLUSTER => claims.cluster,
             CACHE_KEY_JWT => claims.authToken
@@ -25,14 +25,14 @@ public class FFAuthServiceCached implements FFAuthService {
     }
 
     private FFModels.AuthInfo claimsFromCache() {
-        Map<String, String> authData = (Map<String, String>)this.config.cache.get(this.getAuthCacheKey());
+        Map<String, String> authData = (Map<String, String>)this.config.cache.getAuth(this.getAuthCacheKey());
         if(authData == null) return null;
         System.debug('Loading authentication data from cache');
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
     private String getAuthCacheKey() {
-        return FFCacheKeys.getAuthCacheKey(this.config.cache, this.sdkKey);
+        return FFCacheKeys.getAuthCacheKey(this.sdkKey);
     }
 
     public FFModels.AuthInfo authenticate() {

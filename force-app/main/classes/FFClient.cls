@@ -39,17 +39,17 @@ public class FFClient {
     public void updateCache() {
         FFCache cache = this.config.cache;
         List<FFModelsFeatures.FeatureConfig> features = this.api.getFeatureConfigs(this.envAndClusterRequestParams());
-        cache.put(FFCacheKeys.getFeatureConfigsKey(cache), features, this.config.featureConfigTimeToLive);
+        cache.putFeatures(features, this.config.featureConfigTimeToLive);
         List<FFModelsFeatures.TargetSegment> segments = this.api.getTargetSegments(this.envAndClusterRequestParams());
-        cache.put(FFCacheKeys.getTargetSegmentsKey(cache), segments, this.config.featureConfigTimeToLive);
+        cache.putSegments(segments, this.config.featureConfigTimeToLive);
     }
 
     private List<FFModelsFeatures.FeatureConfig> getFeatureConfigs() {
         FFCache cache = this.config.cache;
-        List<FFModelsFeatures.FeatureConfig> featureConfigs = (List<FFModelsFeatures.FeatureConfig>) cache.get(FFCacheKeys.getFeatureConfigsKey(cache));
+        List<FFModelsFeatures.FeatureConfig> featureConfigs = (List<FFModelsFeatures.FeatureConfig>) cache.getFeatures();
         if(featureConfigs == null) {
             List<FFModelsFeatures.FeatureConfig> updated = this.api.getFeatureConfigs(this.envAndClusterRequestParams());
-            cache.put(FFCacheKeys.getFeatureConfigsKey(cache), updated, this.config.featureConfigTimeToLive);
+            cache.putFeatures(updated, this.config.featureConfigTimeToLive);
             return updated;
         }
         return featureConfigs;
@@ -57,10 +57,10 @@ public class FFClient {
 
     private List<FFModelsFeatures.TargetSegment> getTargetSegments() {
         FFCache cache = this.config.cache;
-        List<FFModelsFeatures.TargetSegment> targetSegments = (List<FFModelsFeatures.TargetSegment>) cache.get(FFCacheKeys.getTargetSegmentsKey(cache));
+        List<FFModelsFeatures.TargetSegment> targetSegments = (List<FFModelsFeatures.TargetSegment>) cache.getSegments();
         if(targetSegments == null) {
             List<FFModelsFeatures.TargetSegment> updated = this.api.getTargetSegments(this.envAndClusterRequestParams());
-            cache.put(FFCacheKeys.getTargetSegmentsKey(cache), updated, this.config.featureConfigTimeToLive);
+            cache.putSegments(updated, this.config.featureConfigTimeToLive);
             return updated;
         }
         return targetSegments;
