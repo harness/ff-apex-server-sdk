@@ -1,10 +1,12 @@
 public interface FFCache {
 
-    void put(String key, Object value, Integer ttl);
+    void putFeatures(List<FFModelsFeatures.FeatureConfig> features, Integer ttl);
+    void putSegments(List<FFModelsFeatures.TargetSegment> segments, Integer ttl);
+    void putAuth(String key, Map<String, String> authData, Integer ttl);
 
-    Object get(String key);
+    List<FFModelsFeatures.FeatureConfig> getFeatures();
+    List<FFModelsFeatures.TargetSegment> getSegments();
+    Map<String, String> getAuth(String key);
 
     String getCacheNamespace();
-
-    String getCachePartition();
 }

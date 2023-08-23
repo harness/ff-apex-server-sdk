@@ -34,8 +34,8 @@ private class FFAuthServiceCachedTest {
        FFModels.AuthInfo result = authService.authenticate();
        System.assertEquals('2', result.cluster);
        System.assertEquals('test-env', result.environmentUUID);
-       String cacheKey = FFCacheKeys.getAuthCacheKey(config.cache, 'test-sdk-key');
-       Map<String, String> stored = (Map<String, String>)config.cache.get(cacheKey);
+       String cacheKey = FFCacheKeys.getAuthCacheKey('test-sdk-key');
+       Map<String, String> stored = (Map<String, String>)config.cache.getAuth(cacheKey);
        System.assertEquals(stored.get('environmentUUID'), 'test-env');
        System.assertEquals(stored.get('cluster'), '2');
        System.assertEquals(stored.get('jwt'), response.authToken);

@@ -41,12 +41,12 @@ private class FFClientTest {
         List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
         FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
         FFClient client = new FFClient(mockClientApi(features, targets), null, config, 'test', 'test');
-        System.assertEquals(null, config.cache.get(FFCacheKeys.getFeatureConfigsKey(config.cache)));
-        System.assertEquals(null, config.cache.get(FFCacheKeys.getTargetSegmentsKey(config.cache)));
+        System.assertEquals(null, config.cache.getFeatures());
+        System.assertEquals(null, config.cache.getSegments());
 
         client.updateCache();
-        System.assertEquals(0, ((List<FFModelsFeatures.FeatureConfig>)config.cache.get(FFCacheKeys.getFeatureConfigsKey(config.cache))).size());
-        System.assertEquals(0, ((List<FFModelsFeatures.TargetSegment>)config.cache.get(FFCacheKeys.getTargetSegmentsKey(config.cache))).size());
+        System.assertEquals(0, ((List<FFModelsFeatures.FeatureConfig>)config.cache.getFeatures()).size());
+        System.assertEquals(0, ((List<FFModelsFeatures.TargetSegment>)config.cache.getSegments()).size());
     }
 
     @isTest
@@ -60,8 +60,8 @@ private class FFClientTest {
         features.add(testFeature);
         
         FFCache cache = new FFMockCache();
-        cache.put(FFCacheKeys.getFeatureConfigsKey(cache), features, 1);
-        cache.put(FFCacheKeys.getTargetSegmentsKey(cache), targets, 1);
+        cache.putFeatures(features, 1);
+        cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).build();
 
         FFClient client = new FFClient(null, null, config, 'test', 'test');
@@ -89,8 +89,8 @@ private class FFClientTest {
         testFeature.defaultServe = new FFModelsFeatures.Serve();
         testFeature.defaultServe.variation = 'test';
         FFCache cache = new FFMockCache();
-        cache.put(FFCacheKeys.getFeatureConfigsKey(cache), features, 1);
-        cache.put(FFCacheKeys.getTargetSegmentsKey(cache), targets, 1);
+        cache.putFeatures(features, 1);
+        cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).evalExpireAfter(1).authExpireAfter(1).baseUrl('').eventsUrl('').featureConfigTimeToLive(1).build();
 
         FFClient client = new FFClient(null, null, config, 'test', 'test');
@@ -115,8 +115,8 @@ private class FFClientTest {
         testFeature.defaultServe = new FFModelsFeatures.Serve();
         testFeature.defaultServe.variation = 'test';
         FFCache cache = new FFMockCache();
-        cache.put(FFCacheKeys.getFeatureConfigsKey(cache), features, 1);
-        cache.put(FFCacheKeys.getTargetSegmentsKey(cache), targets, 1);
+        cache.putFeatures(features, 1);
+        cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).build();
 
         FFClient client = new FFClient(null, null, config, 'test', 'test');
@@ -197,8 +197,8 @@ private class FFClientTest {
         features.add(preFeature);
         
         FFCache cache = new FFMockCache();
-        cache.put(FFCacheKeys.getFeatureConfigsKey(cache), features, 1);
-        cache.put(FFCacheKeys.getTargetSegmentsKey(cache), targets, 1);
+        cache.putFeatures(features, 1);
+        cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).metricsEnabled().build();
 
         FFClient client = new FFClient(null, null, config, 'test', 'test');
