@@ -59,7 +59,6 @@ public class FFOrgCache implements FFCache {
         List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
         for (String nextKey : Cache.Org.getKeys()) {
             if (nextKey.startsWith(EntryType.FEATURE.name())) {
-                System.debug('get feature key: ' + nextKey);
                 features.add((FFModelsFeatures.FeatureConfig)Cache.Org.get(nextKey));
             }
         }
@@ -70,7 +69,6 @@ public class FFOrgCache implements FFCache {
         List<FFModelsFeatures.TargetSegment> segments = new List<FFModelsFeatures.TargetSegment>();
         for (String nextKey : Cache.Org.getKeys()) {
             if (nextKey.startsWith(EntryType.SEGMENT.name())) {
-                System.debug('get targetsegment key: ' + nextKey);
                 segments.add((FFModelsFeatures.TargetSegment)Cache.Org.get(nextKey));
             }
         }
