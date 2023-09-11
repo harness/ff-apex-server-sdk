@@ -47,7 +47,7 @@ public class FFClient {
     private List<FFModelsFeatures.FeatureConfig> getFeatureConfigs() {
         FFCache cache = this.config.cache;
         List<FFModelsFeatures.FeatureConfig> featureConfigs = (List<FFModelsFeatures.FeatureConfig>) cache.getFeatures();
-        if(featureConfigs == null) {
+        if(featureConfigs.size() == 0) {
             List<FFModelsFeatures.FeatureConfig> updated = this.api.getFeatureConfigs(this.envAndClusterRequestParams());
             cache.putFeatures(updated, this.config.featureConfigTimeToLive);
             return updated;
@@ -58,7 +58,7 @@ public class FFClient {
     private List<FFModelsFeatures.TargetSegment> getTargetSegments() {
         FFCache cache = this.config.cache;
         List<FFModelsFeatures.TargetSegment> targetSegments = (List<FFModelsFeatures.TargetSegment>) cache.getSegments();
-        if(targetSegments == null) {
+        if(targetSegments.size() == 0) {
             List<FFModelsFeatures.TargetSegment> updated = this.api.getTargetSegments(this.envAndClusterRequestParams());
             cache.putSegments(updated, this.config.featureConfigTimeToLive);
             return updated;

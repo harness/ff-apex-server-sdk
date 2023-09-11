@@ -56,20 +56,24 @@ public class FFOrgCache implements FFCache {
     }
 
     public List<FFModelsFeatures.FeatureConfig> getFeatures() {
+        Cache.OrgPartition cachePartitionObj = Cache.Org.getPartition(cacheNamespace + '.' + cachePartition );
         List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
-        for (String nextKey : Cache.Org.getKeys()) {
+        
+        for (String nextKey : cachePartitionObj.getKeys()) {
             if (nextKey.startsWith(EntryType.FEATURE.name())) {
-                features.add((FFModelsFeatures.FeatureConfig)Cache.Org.get(nextKey));
+                features.add((FFModelsFeatures.FeatureConfig)cachePartitionObj.get(nextKey));
             }
         }
         return features;
     }
 
     public List<FFModelsFeatures.TargetSegment> getSegments() {
+        Cache.OrgPartition cachePartitionObj = Cache.Org.getPartition(cacheNamespace + '.' + cachePartition );
         List<FFModelsFeatures.TargetSegment> segments = new List<FFModelsFeatures.TargetSegment>();
-        for (String nextKey : Cache.Org.getKeys()) {
+
+        for (String nextKey : cachePartitionObj.getKeys()) {
             if (nextKey.startsWith(EntryType.SEGMENT.name())) {
-                segments.add((FFModelsFeatures.TargetSegment)Cache.Org.get(nextKey));
+                segments.add((FFModelsFeatures.TargetSegment)cachePartitionObj.get(nextKey));
             }
         }
         return segments;
