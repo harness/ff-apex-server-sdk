@@ -4,20 +4,6 @@ public class FFClientBuilder {
     private final FFConfig config;
     private Integer pollingIntervalInSeconds = 0;
 
-    private class CacheUpdator implements Callable {
-
-        private final FFClient client;
-
-        public CacheUpdator(FFClient client) {
-            this.client = client;
-        }
-
-        public Object call(String action, Map<String, Object> args) {
-            this.client.updateCache();
-            return true;
-        }
-    }
-
     private class AlwaysFalse implements Callable {
 
         public Object call(String action, Map<String, Object> args) {
@@ -38,7 +24,7 @@ public class FFClientBuilder {
     public FFClient build(){
         FFClient client = FFClient.create(this.sdkKey, this.config);
         if(pollingIntervalInSeconds > 0) {
-            new FFPoller(new CacheUpdator(client))
+            new FFPoller(new FFClient.CacheUpdator(client))
             .staticDelay(this.pollingIntervalInSeconds)
             .untilTrue(new AlwaysFalse())
             .execute();

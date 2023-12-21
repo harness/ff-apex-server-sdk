@@ -206,4 +206,37 @@ public class FFClient {
     public static FFClientBuilder builder(String sdkKey, FFConfig config){
         return new FFClientBuilder(sdkKey, config);
     }
+
+    public class CacheUpdator implements Callable {
+
+        private final FFClient client;
+
+        // The JWT token used for authentication is set to expire after 24 hours. In scenarios involving long-running
+        // jobs, it's possible that the token stored in the Platform Cache might not get refreshed if no authentication
+        // calls are made within this 24-hour period. To handle such cases and prevent authentication failures,
+        // we manually trigger a reauthentication process. This ensures that a valid token is always available,
+        // especially for jobs that run longer than the token's expiration period.
+        private static final Long REAUTH_INTERVAL_SECONDS = 23 * 60 * 60; 
+        private static Datetime lastAuthTime = Datetime.now();
+    
+
+        public CacheUpdator(FFClient client) {
+            this.client = client;
+        }
+
+        public Object call(String action, Map<String, Object> args) {
+            // Check if 23 hours have passed since the last reauthentication
+            if (Datetime.now().getTime() - lastAuthTime.getTime() > REAUTH_INTERVAL_SECONDS * 1000) {
+                reauthenticate(); 
+                lastAuthTime = Datetime.now();
+            }
+            
+            this.client.updateCache();
+            return true;
+        }
+
+        private void reauthenticate() {
+            
+        }
+    }
 }
