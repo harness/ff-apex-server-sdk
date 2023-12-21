@@ -3,6 +3,7 @@ public class FFClient {
     private final FFConfig config;
     private final FFClientApi api;
     private final FFMetricsApi metricsApi;
+    private final FFAuthService authService;
 
     private String environmentUUID;
     private String cluster = '1';
@@ -10,11 +11,16 @@ public class FFClient {
     private static Integer maxRetry = 5;
     private final Long waitInterval = 2000;
 
+
+
+    public static String LAST_AUTH_TIME_KEY = 'lastAuthTime';
+
     public virtual class AuthException extends Exception {}
 
-    public FFClient(FFClientApi api, FFMetricsApi metricsApi, FFConfig config, String environmentUUID, String cluster) {
+    public FFClient(FFAuthService authService, FFClientApi api, FFMetricsApi metricsApi, FFConfig config, String environmentUUID, String cluster) {
         this.config = config;
         this.api = api;
+        this.authService = authService;
         this.metricsApi = metricsApi;
         this.environmentUUID = environmentUUID;
         this.cluster = cluster;
@@ -30,10 +36,10 @@ public class FFClient {
         FFClientApi api = new FFClientApi(apiClient);
         FFMetricsApi metricsApi = new FFMetricsApi(eventsClient);
         FFAuthService authService = new FFAuthServiceCached(sdkKey, config, api);
-        FFModels.AuthInfo authResult = authService.authenticate();
+        FFModels.AuthInfo authResult = authService.authenticate(false);
         apiClient.setJWTToken(authResult.authToken);
         eventsClient.setJWTToken(authResult.authToken);
-        return new FFClient(api, metricsApi, config, authResult.environmentUUID, authResult.cluster);
+        return new FFClient(authService, api, metricsApi, config, authResult.environmentUUID, authResult.cluster);
     }
 
     public void updateCache() {
@@ -210,33 +216,48 @@ public class FFClient {
     public class CacheUpdator implements Callable {
 
         private final FFClient client;
-
-        // The JWT token used for authentication is set to expire after 24 hours. In scenarios involving long-running
-        // jobs, it's possible that the token stored in the Platform Cache might not get refreshed if no authentication
-        // calls are made within this 24-hour period. To handle such cases and prevent authentication failures,
-        // we manually trigger a reauthentication process. This ensures that a valid token is always available,
-        // especially for jobs that run longer than the token's expiration period.
-        private static final Long REAUTH_INTERVAL_SECONDS = 23 * 60 * 60; 
-        private static Datetime lastAuthTime = Datetime.now();
     
-
         public CacheUpdator(FFClient client) {
             this.client = client;
         }
 
+     
         public Object call(String action, Map<String, Object> args) {
-            // Check if 23 hours have passed since the last reauthentication
-            if (Datetime.now().getTime() - lastAuthTime.getTime() > REAUTH_INTERVAL_SECONDS * 1000) {
-                reauthenticate(); 
-                lastAuthTime = Datetime.now();
+            // Polling reauthentication mechanism:
+            // The JWT token used for authentication is set to expire after 24 hours. In scenarios involving long-running
+            // jobs, it's possible that the token stored in the Platform Cache might not get refreshed if no authentication
+            // calls are made within this 24-hour period. To handle such cases and prevent authentication failures,
+            // we manually trigger a reauthentication process. This ensures that a valid token is always available,
+            // especially for jobs that run longer than the token's expiration period.
+            FFModels.LastAuthTime lastAuthData = this.client.authService.getLastAuthTime();
+            // This should be set when the SDK authenticates, so this is a defesnive check to
+            // force a re-auth if it can't be found, perhaps due to a cache eviction.
+            if(lastAuthData == null) {
+                FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
+                this.client.api.getClient().setJWTToken(authResult.authToken);
+                this.client.metricsApi.getClient().setJWTToken(authResult.authToken);
+                 this.client.updateCache();
+                return true;
             }
+
+        
+            Long lastAuthTimeMillis = Long.valueOf(lastAuthData.lastAuthTimeMillis);
+            Datetime lastAuthTime = Datetime.newInstance(lastAuthTimeMillis);
             
+            // Calculate the expiration time based on last authentication time and the expiration interval
+            Datetime expirationTime = lastAuthTime.addSeconds(this.client.config.authExpireAfter);
+
+            // Check if the current time is after the calculated expiration time
+            if (Datetime.now().getTime() > expirationTime.getTime()) {
+                FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
+                this.client.api.getClient().setJWTToken(authResult.authToken);
+                this.client.metricsApi.getClient().setJWTToken(authResult.authToken);            
+            }
+
+            // Update the features/segments cache
             this.client.updateCache();
             return true;
         }
-
-        private void reauthenticate() {
-            
-        }
+        
     }
 }

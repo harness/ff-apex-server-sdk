@@ -8,6 +8,7 @@ public class FFAuthServiceCached implements FFAuthService {
     private final String CACHE_KEY_CLUSTER = 'cluster';
     private final String CACHE_KEY_JWT = 'jwt';
 
+
     public virtual class AuthException extends Exception {}
 
     public FFAuthServiceCached(String sdkKey, FFConfig config, FFAuthenticator authenticator) {
@@ -24,6 +25,12 @@ public class FFAuthServiceCached implements FFAuthService {
         }, this.config.authExpireAfter);
     }
 
+    private void updateLastAuthTimeInCache(FFModels.AuthInfo claims) {
+        this.config.cache.putLastAuthTimeWithoutTTL(this.getLastAuthTimeKey(), new Map<String, String>{
+            FFClient.LAST_AUTH_TIME_KEY => String.valueOf(Datetime.now().getTime())
+        });
+    }
+
     private FFModels.AuthInfo claimsFromCache() {
         Map<String, String> authData = (Map<String, String>)this.config.cache.getAuth(this.getAuthCacheKey());
         if(authData == null) return null;
@@ -31,11 +38,27 @@ public class FFAuthServiceCached implements FFAuthService {
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
+    public FFModels.LastAuthTime getLastAuthTime() {
+        Map<String, String> lastAuthItem = (Map<String, String>)this.config.cache.getAuth(this.getLastAuthTimeKey());
+        // TODO, don't return null, just indicate we should reauthenticate somehow
+        if(lastAuthItem == null) return null;
+        System.debug('Loading last authentication time from cache');
+        return new FFModels.LastAuthTime(lastAuthItem.get(FFClient.LAST_AUTH_TIME_KEY));
+    }
+
     private String getAuthCacheKey() {
         return FFCacheKeys.getAuthCacheKey(this.sdkKey);
     }
 
-    public FFModels.AuthInfo authenticate() {
+    private String getLastAuthTimeKey() {
+        return FFCacheKeys.getAuthCacheKey(this.sdkKey + FFClient.LAST_AUTH_TIME_KEY);
+    }
+
+    public FFModels.AuthInfo authenticate(Boolean force) {
+        if (force) {
+            System.debug('Force auth refresh requested, authenticating...');
+            return this.reauthenticate(0);
+        }
         FFModels.AuthInfo claims = this.claimsFromCache();
         if(claims != null) return claims;
         System.debug('Authentication token not found in cache, authenticating...');

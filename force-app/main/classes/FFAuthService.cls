@@ -1,3 +1,5 @@
 public interface FFAuthService {
-    FFModels.AuthInfo authenticate();
+    FFModels.AuthInfo authenticate(Boolean force);
+    FFModels.LastAuthTime getLastAuthTime();
+    
 } 

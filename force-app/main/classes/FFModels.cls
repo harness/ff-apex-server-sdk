@@ -25,4 +25,11 @@ public abstract class FFModels {
         public String clusterIdentifier {get;set;}
     }
 
+    public class LastAuthTime {
+        public String lastAuthTimeMillis {get;set;}
+        public LastAuthTime(String lastAuthTimeMillis) {
+            this.lastAuthTimeMillis = lastAuthTimeMillis;
+        }
+    }
+
 }
