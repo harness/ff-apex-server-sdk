@@ -16,7 +16,7 @@ private class FFClientTest {
             if (endpoint.contains('/client/env/{environmentUUID}/feature-configs')) {
                 return httpResponse(features);
             } else return httpResponse(targets);
-            
+
         }
     }
 
@@ -303,5 +303,33 @@ private class FFClientTest {
         System.assertEquals(true, mockAuthService.authenticateCalled, 'Reauthentication was not triggered as expected');
     }
 
+    @isTest
+    private static void shouldNotReauthenticateWhenTokenIsStillValid() {
+        // Create mock authentication information
+        FFModels.AuthInfo mockAuthInfo = new FFModels.AuthInfo('mockToken', 'envUUID', 'cluster');
+        MockFFAuthService mockAuthService = new MockFFAuthService(mockAuthInfo);
+
+        // Set the last authentication time to be very recent
+        Long recentTimeMillis = Datetime.now().addSeconds(-100).getTime();
+        mockAuthService.setLastAuthTime(new FFModels.LastAuthTime(String.valueOf(recentTimeMillis)));
+
+        // Create the FFClient configuration with a specified expiration interval
+        FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
+                                    .cache(new FFMockCache()).build();
+
+
+
+        List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
+        List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
+        FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
+
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
+
+
+        cacheUpdator.call(null, null);
+
+        // Assert that authentication hasn't happened 
+        System.assertEquals(false, mockAuthService.authenticateCalled, 'Reauthentication was not triggered as expected');
+    }
 
 }
