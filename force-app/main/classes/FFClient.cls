@@ -247,8 +247,13 @@ public class FFClient {
             // Calculate the expiration time based on last authentication time and the expiration interval
             Datetime expirationTime = lastAuthTime.addSeconds(this.client.config.authExpireAfter);
 
+            // Subtract one hour (3600 seconds) from the expiration time to add a margin
+            Datetime marginTime = expirationTime.addSeconds(-3600);
+
+
             // Check if the current time is after the calculated expiration time
-            if (Datetime.now().getTime() > expirationTime.getTime()) {
+            if (Datetime.now().getTime() > marginTime.getTime()) {
+                System.debug('Authentication token has expired, re-authenticating...');
                 FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
                 this.client.api.getClient().setJWTToken(authResult.authToken);
                 this.client.metricsApi.getClient().setJWTToken(authResult.authToken);            
