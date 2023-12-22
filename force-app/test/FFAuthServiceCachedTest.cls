@@ -31,15 +31,20 @@ private class FFAuthServiceCachedTest {
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
        MockAuthenticator authenticator = new MockAuthenticator(response);
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
-       FFModels.AuthInfo result = authService.authenticate();
+       FFModels.AuthInfo result = authService.authenticate(false);
        System.assertEquals('2', result.cluster);
        System.assertEquals('test-env', result.environmentUUID);
-       String cacheKey = FFCacheKeys.getAuthCacheKey('test-sdk-key');
-       Map<String, String> stored = (Map<String, String>)config.cache.getAuth(cacheKey);
+       String authCacheKey = FFCacheKeys.getCacheKey('test-sdk-key');
+       Map<String, String> stored = (Map<String, String>)config.cache.getKey(authCacheKey);
        System.assertEquals(stored.get('environmentUUID'), 'test-env');
        System.assertEquals(stored.get('cluster'), '2');
        System.assertEquals(stored.get('jwt'), response.authToken);
+
+       // Ensure lastAuthTime gets cached
+       String lastAuthKey = FFCacheKeys.getCacheKey('test-sdk-key'+FFClient.LAST_AUTH_TIME_KEY);
     }
+
+
 
     @isTest
     private static void shouldRetryAuthenticationOn403() {
@@ -48,7 +53,7 @@ private class FFAuthServiceCachedTest {
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
        MockAuthenticator authenticator = new MockAuthenticator(response, 2); // FAIL TWICE
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
-       FFModels.AuthInfo result = authService.authenticate();
+       FFModels.AuthInfo result = authService.authenticate(false);
        System.assertEquals('2', result.cluster);
        System.assertEquals('test-env', result.environmentUUID);
        System.assertEquals(3, authenticator.called); // CALLED THREE TIMES
@@ -62,7 +67,7 @@ private class FFAuthServiceCachedTest {
        MockAuthenticator authenticator = new MockAuthenticator(response, 20); // FAIL More than max times
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
        try {
-        FFModels.AuthInfo result = authService.authenticate();
+        FFModels.AuthInfo result = authService.authenticate(false);
             System.assert(false, 'Shouldn\'t get here');
        } catch(Exception e) {
             System.assertEquals(11, authenticator.called); // CALLED 1 Initial time + 10 Retries
@@ -77,7 +82,7 @@ private class FFAuthServiceCachedTest {
        MockAuthenticator authenticator = new MockAuthenticator(response, 20); // FAIL More than max times
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
        try {
-        FFModels.AuthInfo result = authService.authenticate();
+        FFModels.AuthInfo result = authService.authenticate(false);
             System.assert(false, 'Shouldn\'t get here');
        } catch(Exception e) {
             System.assertEquals(5, authenticator.called); // CALLED 1 Initial time + 10 Retries

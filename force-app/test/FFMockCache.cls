@@ -16,6 +16,11 @@ public class FFMockCache implements FFCache {
         this.cache.put('auth'+key, authData);
     }
 
+
+    public void putLastAuthTimeWithoutTTL(String key, Map<String, String> lastAuthTime) {
+        this.cache.put('lastAuth'+key, lastAuthTime);
+    }
+
     public List<FFModelsFeatures.FeatureConfig> getFeatures() {
         return (List<FFModelsFeatures.FeatureConfig>) this.cache.get('features');
     }
@@ -24,7 +29,7 @@ public class FFMockCache implements FFCache {
         return (List<FFModelsFeatures.TargetSegment>) this.cache.get('segments');
     }
 
-    public Map<String, String> getAuth(String key) {
+    public Map<String, String> getKey(String key) {
         return (Map<String, String>) this.cache.get('auth'+key);
     }
 

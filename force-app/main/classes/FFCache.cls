@@ -7,7 +7,7 @@ public interface FFCache {
 
     List<FFModelsFeatures.FeatureConfig> getFeatures();
     List<FFModelsFeatures.TargetSegment> getSegments();
-    Map<String, String> getAuth(String key);
+    Map<String, String> getKey(String key);
 
     String getCacheNamespace();
 }

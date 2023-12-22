@@ -32,14 +32,14 @@ public class FFAuthServiceCached implements FFAuthService {
     }
 
     private FFModels.AuthInfo claimsFromCache() {
-        Map<String, String> authData = (Map<String, String>)this.config.cache.getAuth(this.getAuthCacheKey());
+        Map<String, String> authData = (Map<String, String>)this.config.cache.getKey(this.getAuthCacheKey());
         if(authData == null) return null;
         System.debug('Loading authentication data from cache');
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
     public FFModels.LastAuthTime getLastAuthTime() {
-        Map<String, String> lastAuthItem = (Map<String, String>)this.config.cache.getAuth(this.getLastAuthTimeKey());
+        Map<String, String> lastAuthItem = (Map<String, String>)this.config.cache.getKey(this.getLastAuthTimeKey());
         // TODO, don't return null, just indicate we should reauthenticate somehow
         if(lastAuthItem == null) return null;
         System.debug('Loading last authentication time from cache');
@@ -47,11 +47,11 @@ public class FFAuthServiceCached implements FFAuthService {
     }
 
     private String getAuthCacheKey() {
-        return FFCacheKeys.getAuthCacheKey(this.sdkKey);
+        return FFCacheKeys.getCacheKey(this.sdkKey);
     }
 
     private String getLastAuthTimeKey() {
-        return FFCacheKeys.getAuthCacheKey(this.sdkKey + FFClient.LAST_AUTH_TIME_KEY);
+        return FFCacheKeys.getCacheKey(this.sdkKey + FFClient.LAST_AUTH_TIME_KEY);
     }
 
     public FFModels.AuthInfo authenticate(Boolean force) {

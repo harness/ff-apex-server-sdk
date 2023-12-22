@@ -17,6 +17,25 @@ private class FFClientTest {
         }
     }
 
+    private class MockFFAuthService implements FFAuthService {
+        private FFModels.AuthInfo mockAuthInfo;
+        private FFModels.LastAuthTime mockLastAuthTime;
+
+    
+        public MockFFAuthService(FFModels.AuthInfo mockAuthInfo) {
+            this.mockAuthInfo = mockAuthInfo;
+        }
+    
+        public FFModels.AuthInfo authenticate(Boolean force) {
+            return mockAuthInfo;
+        }
+
+        public FFModels.LastAuthTime getLastAuthTime() {
+            return mockLastAuthTime;
+        }
+    
+    }
+
     private static HttpResponse httpResponse(Object content) {
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'application/json');
@@ -37,10 +56,15 @@ private class FFClientTest {
 
     @isTest
     private static void shouldUpdateCacheWithLatestFromHttpCalls() {
+        FFModels.AuthInfo mockAuthInfo = new FFModels.AuthInfo('mockToken', 'envUUID', 'cluster');
+        MockFFAuthService mockAuthService = new MockFFAuthService(mockAuthInfo);
+        
         List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
         List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
+
+
         FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
-        FFClient client = new FFClient(mockClientApi(features, targets), null, config, 'test', 'test');
+        FFClient client = new FFClient(null, mockClientApi(features, targets), null, config, 'test', 'test');
         System.assertEquals(null, config.cache.getFeatures());
         System.assertEquals(null, config.cache.getSegments());
 
@@ -64,7 +88,7 @@ private class FFClientTest {
         cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).build();
 
-        FFClient client = new FFClient(null, null, config, 'test', 'test');
+        FFClient client = new FFClient(null, null, null, config, 'test', 'test');
         FFTarget target = FFTarget.builder().identifier('test').build();
         System.assertEquals(false, client.boolVariation('test-feature', target, false));
         System.assertEquals(new Map<String, Object>(), client.jsonVariation('test-feature', target, new Map<String, Object>(), Map<String, Object>.class));
@@ -93,7 +117,7 @@ private class FFClientTest {
         cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).evalExpireAfter(1).authExpireAfter(1).baseUrl('').eventsUrl('').featureConfigTimeToLive(1).build();
 
-        FFClient client = new FFClient(null, null, config, 'test', 'test');
+        FFClient client = new FFClient(null, null, null, config, 'test', 'test');
         FFTarget target = new FFTarget('test', '');
         target.attributes = new Map<String, Object> { 'a' => 'b' };
         System.assertEquals(true, client.boolVariation('test-feature', target, false));
@@ -119,7 +143,7 @@ private class FFClientTest {
         cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).build();
 
-        FFClient client = new FFClient(null, null, config, 'test', 'test');
+        FFClient client = new FFClient(null, null, null, config, 'test', 'test');
         FFTarget target = new FFTarget('test', '');
         target.attributes = new Map<String, Object> { 'a' => 'b' };
         switch on kind {
@@ -201,7 +225,7 @@ private class FFClientTest {
         cache.putSegments(targets, 1);
         FFConfig config = FFConfig.builder().cache(cache).metricsEnabled().build();
 
-        FFClient client = new FFClient(null, null, config, 'test', 'test');
+        FFClient client = new FFClient(null, null, null, config, 'test', 'test');
         FFTarget target = FFTarget.builder().identifier('test').anonymous(false).attributes(null).build();
         System.assertEquals(false, client.boolVariation('test-feature', target, true));
     }
