@@ -25,9 +25,10 @@ public class FFAuthServiceCached implements FFAuthService {
         }, this.config.authExpireAfter);
     }
 
-    private void updateLastAuthTimeInCache(FFModels.AuthInfo claims) {
+    @TestVisible
+    private void updateLastAuthTimeInCache(Long authTime) {
         this.config.cache.putLastAuthTimeWithoutTTL(this.getLastAuthTimeKey(), new Map<String, String>{
-            FFClient.LAST_AUTH_TIME_KEY => String.valueOf(Datetime.now().getTime())
+            FFClient.LAST_AUTH_TIME_KEY => String.valueOf(authTime)
         });
     }
 
@@ -40,7 +41,6 @@ public class FFAuthServiceCached implements FFAuthService {
 
     public FFModels.LastAuthTime getLastAuthTime() {
         Map<String, String> lastAuthItem = (Map<String, String>)this.config.cache.getKey(this.getLastAuthTimeKey());
-        // TODO, don't return null, just indicate we should reauthenticate somehow
         if(lastAuthItem == null) return null;
         System.debug('Loading last authentication time from cache');
         return new FFModels.LastAuthTime(lastAuthItem.get(FFClient.LAST_AUTH_TIME_KEY));
@@ -83,8 +83,11 @@ public class FFAuthServiceCached implements FFAuthService {
             FFModels.JWTClaims claims = this.claimsFrom(result.authToken);
             FFModels.AuthInfo authClaims = new FFModels.AuthInfo(result.authToken, claims.environment, claims.clusterIdentifier);
             this.updateAuthInCache(authClaims);
+            Long authTime = Datetime.now().getTime();
+            this.updateLastAuthTimeInCache(authTime);
             System.debug('Env UUID ' + authClaims.environmentUUID);
             System.debug('Cluster ID ' + authClaims.cluster);
+            System.debug('Auth time ' + authTime);
             return authClaims;
         } catch (FFBase.ApiException e) {
             System.debug('Auth Error');

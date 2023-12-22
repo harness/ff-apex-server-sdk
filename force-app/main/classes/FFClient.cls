@@ -230,9 +230,11 @@ public class FFClient {
             // we manually trigger a reauthentication process. This ensures that a valid token is always available,
             // especially for jobs that run longer than the token's expiration period.
             FFModels.LastAuthTime lastAuthData = this.client.authService.getLastAuthTime();
+           
             // This should be set when the SDK authenticates, so this is a defesnive check to
             // force a re-auth if it can't be found, perhaps due to a cache eviction.
             if(lastAuthData == null) {
+                System.debug('Unable to find last authentication time in cache, forcing authentication');
                 FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
                 this.client.api.getClient().setJWTToken(authResult.authToken);
                 this.client.metricsApi.getClient().setJWTToken(authResult.authToken);
@@ -240,7 +242,6 @@ public class FFClient {
                 return true;
             }
 
-        
             Long lastAuthTimeMillis = Long.valueOf(lastAuthData.lastAuthTimeMillis);
             Datetime lastAuthTime = Datetime.newInstance(lastAuthTimeMillis);
             

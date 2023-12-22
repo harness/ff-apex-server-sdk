@@ -35,13 +35,16 @@ private class FFAuthServiceCachedTest {
        System.assertEquals('2', result.cluster);
        System.assertEquals('test-env', result.environmentUUID);
        String authCacheKey = FFCacheKeys.getCacheKey('test-sdk-key');
-       Map<String, String> stored = (Map<String, String>)config.cache.getKey(authCacheKey);
+       Map<String, String> stored = (Map<String, String>)config.cache.getKey('auth'+authCacheKey);
        System.assertEquals(stored.get('environmentUUID'), 'test-env');
        System.assertEquals(stored.get('cluster'), '2');
        System.assertEquals(stored.get('jwt'), response.authToken);
 
        // Ensure lastAuthTime gets cached
        String lastAuthKey = FFCacheKeys.getCacheKey('test-sdk-key'+FFClient.LAST_AUTH_TIME_KEY);
+       Map<String, String> storedLastAuth = (Map<String, String>)config.cache.getKey('lastAuth'+lastAuthKey);
+       // Just assert that the key is there. We can't verify the timestamp in the test.
+       System.assertNotEquals(storedLastAuth.get(FFClient.LAST_AUTH_TIME_KEY), null);
     }
 
 

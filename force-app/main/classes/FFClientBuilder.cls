@@ -4,6 +4,7 @@ public class FFClientBuilder {
     private final FFConfig config;
     private Integer pollingIntervalInSeconds = 0;
 
+    @TestVisible
     private class AlwaysFalse implements Callable {
 
         public Object call(String action, Map<String, Object> args) {

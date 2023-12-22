@@ -30,7 +30,7 @@ public class FFMockCache implements FFCache {
     }
 
     public Map<String, String> getKey(String key) {
-        return (Map<String, String>) this.cache.get('auth'+key);
+        return (Map<String, String>) this.cache.get(key);
     }
 
     public String getCacheNamespace() { return 'TEST'; }
