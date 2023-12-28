@@ -22,7 +22,7 @@ private class FFClientTest {
 
     private class MockFFAuthService implements FFAuthService {
         private FFModels.AuthInfo mockAuthInfo;
-        private String mockLastAuthTime;
+        private Long mockLastAuthTime;
         public Boolean authenticateCalled = false;
     
         public MockFFAuthService(FFModels.AuthInfo mockAuthInfo) {
@@ -34,11 +34,11 @@ private class FFClientTest {
             return mockAuthInfo;
         }
     
-        public String getLastAuthTime() {
+        public Long getLastAuthTime() {
             return mockLastAuthTime;
         }
     
-        public void setLastAuthTime(String lastAuthTime) {
+        public void setLastAuthTime(Long lastAuthTime) {
             this.mockLastAuthTime = lastAuthTime;
         }
     }
@@ -256,7 +256,7 @@ private class FFClientTest {
         // Set the last authentication time to be just over 23 hours ago
         // This simulates the condition where the token is near its expiration
         Long pastTimeMillis = Datetime.now().addSeconds(-((23 * 60 * 60) + 1)).getTime();
-        mockAuthService.setLastAuthTime(String.valueOf(pastTimeMillis));
+        mockAuthService.setLastAuthTime(pastTimeMillis);
 
         // Create the FFClient configuration with a specified expiration interval
         FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
@@ -288,7 +288,7 @@ private class FFClientTest {
 
         // Set the last authentication time to be very recent
         Long recentTimeMillis = Datetime.now().addSeconds(-100).getTime();
-        mockAuthService.setLastAuthTime(String.valueOf(recentTimeMillis));
+        mockAuthService.setLastAuthTime(recentTimeMillis);
 
         // Create the FFClient configuration with a specified expiration interval
         FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours

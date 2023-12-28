@@ -44,7 +44,7 @@ private class FFAuthServiceCachedTest {
 
        // Ensure lastAuthTime gets cached
        String lastAuthKey = FFCacheKeys.getCacheKey('test-sdk-key');
-       String lastAuth = config.cache.getLastAuthKey('lastAuth'+lastAuthKey);
+       Long lastAuth = config.cache.getLastAuthKey('lastAuth'+lastAuthKey);
        // Just assert that the key is there. We can't verify the timestamp in the test.
        System.assertNotEquals(lastAuth, null);
     }

@@ -55,7 +55,7 @@ public class FFOrgCache implements FFCache {
         Cache.Org.put(key, authData, ttl);
     }
 
-    public void putLastAuthTimeWithoutTTL(String sdkKey, String lastAuthTime) {
+    public void putLastAuthTimeWithoutTTL(String sdkKey, Long lastAuthTime) {
         String key = makeKey(EntryType.AUTHTIME, sdkKey);
         System.debug('Caching last auth time: ' + key);
         Cache.Org.put(key, lastAuthTime);
@@ -87,10 +87,10 @@ public class FFOrgCache implements FFCache {
         return (Map<String, String>) Cache.Org.get(key);
     }
 
-    public String getLastAuthKey(String sdkKey) {
+    public Long getLastAuthKey(String sdkKey) {
         String key = makeKey(EntryType.AUTHTIME, sdkKey);
         System.debug('Get last auth: ' + key);
-        return (String) Cache.Org.get(key);
+        return (Long) Cache.Org.get(key);
     }
 
     public String getCacheNamespace() {

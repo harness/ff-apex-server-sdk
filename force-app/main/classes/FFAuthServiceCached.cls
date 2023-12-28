@@ -26,7 +26,7 @@ public class FFAuthServiceCached implements FFAuthService {
 
     @TestVisible
     private void updateLastAuthTimeInCache(Long authTime) {
-        this.config.cache.putLastAuthTimeWithoutTTL(this.getAuthCacheKey(), String.valueOf(authTime));
+        this.config.cache.putLastAuthTimeWithoutTTL(this.getAuthCacheKey(), authTime);
     }
 
     private FFModels.AuthInfo claimsFromCache() {
@@ -36,7 +36,7 @@ public class FFAuthServiceCached implements FFAuthService {
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
-    public String getLastAuthTime() {
+    public Long getLastAuthTime() {
         return this.config.cache.getLastAuthKey(this.getAuthCacheKey());
     }
 
