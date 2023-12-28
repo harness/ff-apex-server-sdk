@@ -214,13 +214,24 @@ public class FFClient {
     public class CacheUpdator implements Callable {
 
         private final FFClient client;
+
+        // Flags/segements are fetched at initialization to populate the cache for any evaluations
+        // that are made immediately or shortly after. This flag ensures
+        // we don't immediately re-poll after the initial fetch, instead waiting
+        // for the next scheduled poll interval.
+        private Boolean initialFetchAccountedFor = false;
     
         public CacheUpdator(FFClient client) {
             this.client = client;
         }
 
-     
         public Object call(String action, Map<String, Object> args) {
+
+            if (!initialFetchAccountedFor) {
+                this.initialFetchAccountedFor = true;
+                return true;
+            }
+
             // Polling reauthentication mechanism:
             // The JWT token used for authentication is set to expire after 24 hours. In scenarios involving long-running
             // jobs, it's possible that the token stored in the Platform Cache might not get refreshed if no authentication

@@ -23,12 +23,13 @@ public class FFClientBuilder {
     }
 
     public FFClient build(){
-        Boolean isPollingEnabled = pollingIntervalInSeconds > 0;
         FFClient client = FFClient.create(this.sdkKey, this.config);
-        // If polling isn't enabled, fetch flags/segments here as the poller is responsible for
-        // updating the cache when it's enabled.
+
+        // Fetch initial cache values 
+        client.updateCache();
+
+        Boolean isPollingEnabled = pollingIntervalInSeconds > 0;
         if (!isPollingEnabled) {
-            client.updateCache();
             return client;
         }
 
