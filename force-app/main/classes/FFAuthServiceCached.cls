@@ -82,8 +82,7 @@ public class FFAuthServiceCached implements FFAuthService {
         } catch (FFBase.ApiException e) {
             System.debug('Auth Error');
             System.debug(e);
-            // TODO retry on more than just 403
-            if(e.getStatusCode() == 403) {
+            if(e.getStatusCode() == 403 || e.getStatusCode() == 500) {
                 if(retry < this.config.authRetries) {
                     System.debug('Retrying authentication, retry no. ' + retry);
                     return this.reauthenticate(retry + 1);

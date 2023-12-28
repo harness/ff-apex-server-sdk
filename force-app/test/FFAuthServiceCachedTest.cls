@@ -5,20 +5,22 @@ private class FFAuthServiceCachedTest {
         public Integer called { get; set; }
         public Integer throwTimes { get; set; }
         public FFModels.AuthenticationResponse response {get;set;}
+        public Integer errorCode;
         public MockAuthenticator(FFModels.AuthenticationResponse response) {
             this.response = response;
             this.called = 0;
             this.throwTimes = 0;
         }
-        public MockAuthenticator(FFModels.AuthenticationResponse successResponse, Integer throwTimes) {
+        public MockAuthenticator(FFModels.AuthenticationResponse successResponse, Integer throwTimes, Integer errorCode) {
             this.called = 0;
             this.response = successResponse;
             this.throwTimes = throwTimes;
+            this.errorCode = errorCode;
         }
         public FFModels.AuthenticationResponse authenticate(Map<String, Object> params) {
             this.called++;
             if(this.called <= this.throwTimes) {
-                throw new FFBase.ApiException(403, 'Forbidden', new Map<String,String>(), '');
+                throw new FFBase.ApiException(this.errorCode, 'Forbidden', new Map<String,String>(), '');
             }
             return this.response;
         }
@@ -54,7 +56,21 @@ private class FFAuthServiceCachedTest {
        FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
-       MockAuthenticator authenticator = new MockAuthenticator(response, 2); // FAIL TWICE
+       MockAuthenticator authenticator = new MockAuthenticator(response, 2, 403); // FAIL TWICE
+       FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
+       FFModels.AuthInfo result = authService.authenticate(false);
+       System.assertEquals('2', result.cluster);
+       System.assertEquals('test-env', result.environmentUUID);
+       System.assertEquals(3, authenticator.called); // CALLED THREE TIMES
+    }
+
+
+    @isTest
+    private static void shouldRetryAuthenticationOn500() {
+       FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
+       FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
+       response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
+       MockAuthenticator authenticator = new MockAuthenticator(response, 2, 500); // FAIL TWICE
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
        FFModels.AuthInfo result = authService.authenticate(false);
        System.assertEquals('2', result.cluster);
@@ -67,7 +83,7 @@ private class FFAuthServiceCachedTest {
        FFConfig config = FFConfig.builder().cache(new FFMockCache()).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
-       MockAuthenticator authenticator = new MockAuthenticator(response, 20); // FAIL More than max times
+       MockAuthenticator authenticator = new MockAuthenticator(response, 20, 500); // FAIL More than max times
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
        try {
         FFModels.AuthInfo result = authService.authenticate(false);
@@ -82,7 +98,7 @@ private class FFAuthServiceCachedTest {
        FFConfig config = FFConfig.builder().cache(new FFMockCache()).authRetries(4).build();
        FFModels.AuthenticationResponse response = new FFModels.AuthenticationResponse();
        response.authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudCI6InRlc3QtZW52IiwiY2x1c3RlcklkZW50aWZpZXIiOiIyIiwiaWF0IjoxNTE2MjM5MDIyfQ.J806LOlfV15bTVzQVNfKil8VGQOVadXcXpfqTJ_xrZM';
-       MockAuthenticator authenticator = new MockAuthenticator(response, 20); // FAIL More than max times
+       MockAuthenticator authenticator = new MockAuthenticator(response, 20, 500); // FAIL More than max times
        FFAuthServiceCached authService = new FFAuthServiceCached('test-sdk-key', config, authenticator);
        try {
         FFModels.AuthInfo result = authService.authenticate(false);
