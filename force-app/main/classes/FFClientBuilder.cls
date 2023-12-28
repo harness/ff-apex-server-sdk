@@ -23,13 +23,19 @@ public class FFClientBuilder {
     }
 
     public FFClient build(){
+        Boolean isPollingEnabled = pollingIntervalInSeconds > 0;
         FFClient client = FFClient.create(this.sdkKey, this.config);
-        if(pollingIntervalInSeconds > 0) {
-            new FFPoller(new FFClient.CacheUpdator(client))
-            .staticDelay(this.pollingIntervalInSeconds)
-            .untilTrue(new AlwaysFalse())
-            .execute();
+        // If polling isn't enabled, fetch flags/segments here as the poller is responsible for
+        // updating the cache when it's enabled.
+        if (!isPollingEnabled) {
+            client.updateCache();
+            return client;
         }
+
+        new FFPoller(new FFClient.CacheUpdator(client))
+        .staticDelay(this.pollingIntervalInSeconds)
+        .untilTrue(new AlwaysFalse())
+        .execute();
         return client;
     }
 }
