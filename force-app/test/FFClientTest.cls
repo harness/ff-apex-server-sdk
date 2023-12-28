@@ -306,7 +306,7 @@ private class FFClientTest {
         cacheUpdator.call(null, null);
 
         // Assert that authentication hasn't happened 
-        System.assertEquals(false, mockAuthService.authenticateCalled, 'Reauthentication was not triggered as expected');
+        System.assertEquals(false, mockAuthService.authenticateCalled, 'Reauthentication was incorrectly triggered');
     }
 
 }

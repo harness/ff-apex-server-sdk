@@ -257,6 +257,7 @@ public class FFClient {
                 this.client.metricsApi.getClient().setJWTToken(authResult.authToken);            
             }
 
+            System.debug('Authentication token has not expired');
             // Update the features/segments cache
             this.client.updateCache();
             return true;
