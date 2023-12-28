@@ -17,7 +17,7 @@ public class FFMockCache implements FFCache {
     }
 
 
-    public void putLastAuthTimeWithoutTTL(String key, Map<String, String> lastAuthTime) {
+    public void putLastAuthTimeWithoutTTL(String key, String lastAuthTime) {
         this.cache.put('lastAuth'+key, lastAuthTime);
     }
 
@@ -31,6 +31,10 @@ public class FFMockCache implements FFCache {
 
     public Map<String, String> getKey(String key) {
         return (Map<String, String>) this.cache.get(key);
+    }
+
+    public String getLastAuthKey(String key) {
+        return (String) this.cache.get(key);
     }
 
     public String getCacheNamespace() { return 'TEST'; }

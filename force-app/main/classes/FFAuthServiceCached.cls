@@ -27,9 +27,7 @@ public class FFAuthServiceCached implements FFAuthService {
 
     @TestVisible
     private void updateLastAuthTimeInCache(Long authTime) {
-        this.config.cache.putLastAuthTimeWithoutTTL(this.getLastAuthTimeKey(), new Map<String, String>{
-            FFClient.LAST_AUTH_TIME_KEY => String.valueOf(authTime)
-        });
+        this.config.cache.putLastAuthTimeWithoutTTL(this.getAuthCacheKey(), String.valueOf(authTime));
     }
 
     private FFModels.AuthInfo claimsFromCache() {
@@ -39,19 +37,12 @@ public class FFAuthServiceCached implements FFAuthService {
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
-    public FFModels.LastAuthTime getLastAuthTime() {
-        Map<String, String> lastAuthItem = (Map<String, String>)this.config.cache.getKey(this.getLastAuthTimeKey());
-        if(lastAuthItem == null) return null;
-        System.debug('Loading last authentication time from cache');
-        return new FFModels.LastAuthTime(lastAuthItem.get(FFClient.LAST_AUTH_TIME_KEY));
+    public String getLastAuthTime() {
+        return this.config.cache.getLastAuthKey(this.getAuthCacheKey());
     }
 
     private String getAuthCacheKey() {
         return FFCacheKeys.getCacheKey(this.sdkKey);
-    }
-
-    private String getLastAuthTimeKey() {
-        return FFCacheKeys.getCacheKey(this.sdkKey + FFClient.LAST_AUTH_TIME_KEY);
     }
 
     public FFModels.AuthInfo authenticate(Boolean force) {

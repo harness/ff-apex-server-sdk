@@ -11,8 +11,6 @@ public class FFClient {
     private static Integer maxRetry = 5;
     private final Long waitInterval = 2000;
 
-
-
     public static String LAST_AUTH_TIME_KEY = 'lastAuthTime';
 
     public virtual class AuthException extends Exception {}
@@ -229,7 +227,7 @@ public class FFClient {
             // calls are made within this 24-hour period. To handle such cases and prevent authentication failures,
             // we manually trigger a reauthentication process. This ensures that a valid token is always available,
             // especially for jobs that run longer than the token's expiration period.
-            FFModels.LastAuthTime lastAuthData = this.client.authService.getLastAuthTime();
+            String lastAuthData = this.client.authService.getLastAuthTime();
            
             // This should be set when the SDK authenticates, so this is a defesnive check to
             // force a re-auth if it can't be found, perhaps due to a cache eviction.
@@ -242,7 +240,7 @@ public class FFClient {
                 return true;
             }
 
-            Long lastAuthTimeMillis = Long.valueOf(lastAuthData.lastAuthTimeMillis);
+            Long lastAuthTimeMillis = Long.valueOf(lastAuthData);
             Datetime lastAuthTime = Datetime.newInstance(lastAuthTimeMillis);
             
             // Calculate the expiration time based on last authentication time and the expiration interval

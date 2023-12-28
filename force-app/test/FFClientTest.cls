@@ -22,7 +22,7 @@ private class FFClientTest {
 
     private class MockFFAuthService implements FFAuthService {
         private FFModels.AuthInfo mockAuthInfo;
-        private FFModels.LastAuthTime mockLastAuthTime;
+        private String mockLastAuthTime;
         public Boolean authenticateCalled = false;
     
         public MockFFAuthService(FFModels.AuthInfo mockAuthInfo) {
@@ -34,11 +34,11 @@ private class FFClientTest {
             return mockAuthInfo;
         }
     
-        public FFModels.LastAuthTime getLastAuthTime() {
+        public String getLastAuthTime() {
             return mockLastAuthTime;
         }
     
-        public void setLastAuthTime(FFModels.LastAuthTime lastAuthTime) {
+        public void setLastAuthTime(String lastAuthTime) {
             this.mockLastAuthTime = lastAuthTime;
         }
     }
@@ -279,7 +279,7 @@ private class FFClientTest {
         // Set the last authentication time to be just over 23 hours ago
         // This simulates the condition where the token is near its expiration
         Long pastTimeMillis = Datetime.now().addSeconds(-((23 * 60 * 60) + 1)).getTime();
-        mockAuthService.setLastAuthTime(new FFModels.LastAuthTime(String.valueOf(pastTimeMillis)));
+        mockAuthService.setLastAuthTime(String.valueOf(pastTimeMillis));
 
         // Create the FFClient configuration with a specified expiration interval
         FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
@@ -311,7 +311,7 @@ private class FFClientTest {
 
         // Set the last authentication time to be very recent
         Long recentTimeMillis = Datetime.now().addSeconds(-100).getTime();
-        mockAuthService.setLastAuthTime(new FFModels.LastAuthTime(String.valueOf(recentTimeMillis)));
+        mockAuthService.setLastAuthTime(String.valueOf(recentTimeMillis));
 
         // Create the FFClient configuration with a specified expiration interval
         FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
