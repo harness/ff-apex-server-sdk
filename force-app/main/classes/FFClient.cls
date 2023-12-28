@@ -248,20 +248,19 @@ public class FFClient {
             // Subtract one hour (3600 seconds) from the expiration time to add a margin
             Datetime marginTime = expirationTime.addSeconds(-3600);
 
-
-            // Check if the current time is after the calculated expiration time
-            if (Datetime.now().getTime() > marginTime.getTime()) {
-                System.debug('Authentication token has expired, re-authenticating...');
-                FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
-                this.client.api.getClient().setJWTToken(authResult.authToken);
-                this.client.metricsApi.getClient().setJWTToken(authResult.authToken);            
+            if (Datetime.now().getTime() < marginTime.getTime()) {
+                System.debug('Authentication token has not expired');
+                this.client.updateCache();
+                return true;
             }
 
-            System.debug('Authentication token has not expired');
-            // Update the features/segments cache
+            // Auth token has expired, so re-authenticate before updating cache
+            System.debug('Authentication token has expired, re-authenticating...');
+            FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
+            this.client.api.getClient().setJWTToken(authResult.authToken);
+            this.client.metricsApi.getClient().setJWTToken(authResult.authToken);     
             this.client.updateCache();
-            return true;
+            return true;          
         }
-        
     }
 }
