@@ -239,16 +239,21 @@ public class FFClient {
             // we manually trigger a reauthentication process. This ensures that a valid token is always available,
             // especially for jobs that run longer than the token's expiration period.
             Long lastAuthTimeMillis = this.client.authService.getLastAuthTime();
+
+            Boolean isAuthTokenPresent = this.client.authService.isAuthTokenPresent();
+
+            // Defensive check to force a re-auth if the auth token is not in the cache
+            if (!isAuthTokenPresent) {
+                System.debug('Unable to find authentication token in cache, forcing authentication...');
+                return this.authAndUpdateCache();
+            }
            
             // This should be set when the SDK authenticates, so this is a defesnive check to
             // force a re-auth if it can't be found, perhaps due to a cache eviction.
             if(lastAuthTimeMillis == null) {
                 System.debug('Unable to find last authentication time in cache, forcing authentication');
-                FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
-                this.client.api.getClient().setJWTToken(authResult.authToken);
-                this.client.metricsApi.getClient().setJWTToken(authResult.authToken);
-                this.client.updateCache();
-                return true;
+                return this.authAndUpdateCache();
+
             }
 
             Datetime lastAuthTime = Datetime.newInstance(lastAuthTimeMillis);
@@ -258,7 +263,7 @@ public class FFClient {
 
             // Subtract one hour (3600 seconds) from the expiration time to add a margin
             Datetime marginTime = expirationTime.addSeconds(-3600);
-            
+
             if (Datetime.now().getTime() < marginTime.getTime()) {
                 System.debug('Authentication token has not expired');
                 this.client.updateCache();
@@ -267,11 +272,15 @@ public class FFClient {
 
             // Auth token has expired, so re-authenticate before updating cache
             System.debug('Authentication token has expired, re-authenticating...');
+            return this.authAndUpdateCache();
+        }
+
+        private Boolean authAndUpdateCache() {
             FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
             this.client.api.getClient().setJWTToken(authResult.authToken);
-            this.client.metricsApi.getClient().setJWTToken(authResult.authToken);     
+            this.client.metricsApi.getClient().setJWTToken(authResult.authToken);
             this.client.updateCache();
-            return true;          
+            return true;
         }
     }
 }
