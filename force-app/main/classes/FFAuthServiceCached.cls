@@ -8,7 +8,6 @@ public class FFAuthServiceCached implements FFAuthService {
     private final String CACHE_KEY_CLUSTER = 'cluster';
     private final String CACHE_KEY_JWT = 'jwt';
 
-
     public virtual class AuthException extends Exception {}
 
     public FFAuthServiceCached(String sdkKey, FFConfig config, FFAuthenticator authenticator) {

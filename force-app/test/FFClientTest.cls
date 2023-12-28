@@ -247,29 +247,6 @@ private class FFClientTest {
         System.assertEquals(false, client.boolVariation('test-feature', target, true));
     }
 
-    // @isTest
-    // private static void shouldReauthenticateWhenTokenIsAboutToExpire() {
-    //     FFModels.AuthInfo mockAuthInfo = new FFModels.AuthInfo('mockToken', 'envUUID', 'cluster');
-    //     MockFFAuthService mockAuthService = new MockFFAuthService(mockAuthInfo);
-
-    //     // Set the last authentication time to be just over 23 hours ago
-    //     Long pastTimeMillis = Datetime.now().addSeconds(-((23 * 60 * 60) + 1)).getTime();
-    //     mockAuthService.setLastAuthTime(new FFModels.LastAuthTime(String.valueOf(pastTimeMillis)));
-
-    //     FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60).cache(new FFMockCache()).build();
-    //     FFClient client = new FFClient(mockAuthService, null, null, config, 'test', 'test');
-
-    //     new FFPoller(new FFClient.CacheUpdator(client))
-    //     .staticDelay(1)
-    //     .untilTrue(new FFClientBuilder.AlwaysFalse())
-    //     .execute();
-    
-
-
-    //     // Verify that reauthentication was triggered
-    //     System.assertEquals(true, mockAuthService.authenticateCalled, 'Reauthentication was not triggered as expected');
-    // }
-
     @isTest
     private static void shouldReauthenticateWhenTokenIsAboutToExpire() {
         // Create mock authentication information

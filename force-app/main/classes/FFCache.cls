@@ -10,6 +10,5 @@ public interface FFCache {
     Map<String, String> getKey(String key);
     String getLastAuthKey(String key);
 
-
     String getCacheNamespace();
 }

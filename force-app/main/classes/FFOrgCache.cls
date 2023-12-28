@@ -3,7 +3,7 @@ public class FFOrgCache implements FFCache {
     private String cacheNamespace = 'local';
     private String cachePartition = 'basic';
 
-    private enum EntryType { FEATURE, SEGMENT, AUTH, LAST_AUTH }
+    private enum EntryType { FEATURE, SEGMENT, AUTH, LASTAUTH }
 
     /* Cache keys cannot have any non-alphanumeric characters */
     private String stripNonAlphanumeric(String str) {
@@ -56,7 +56,7 @@ public class FFOrgCache implements FFCache {
     }
 
     public void putLastAuthTimeWithoutTTL(String sdkKey, String lastAuthTime) {
-        String key = makeKey(EntryType.LAST_AUTH, sdkKey);
+        String key = makeKey(EntryType.LASTAUTH, sdkKey);
         System.debug('Caching last auth time: ' + key);
         Cache.Org.put(key, lastAuthTime);
     }
@@ -88,7 +88,7 @@ public class FFOrgCache implements FFCache {
     }
 
     public String getLastAuthKey(String sdkKey) {
-        String key = makeKey(EntryType.LAST_AUTH, sdkKey);
+        String key = makeKey(EntryType.LASTAUTH, sdkKey);
         System.debug('Get last auth: ' + key);
         return (String) Cache.Org.get(key);
     }
