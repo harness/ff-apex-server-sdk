@@ -71,13 +71,13 @@ public class FFConfig {
             return this;
         }
 
-        public Builder evalExpireAfter(Integer ms) {
-            this.evalExpireAfter = ms;
+        public Builder evalExpireAfter(Integer seconds) {
+            this.evalExpireAfter = seconds;
             return this;
         }
 
-        public Builder authExpireAfter(Integer ms) {
-            this.authExpireAfter = ms;
+        public Builder authExpireAfter(Integer seconds) {
+            this.authExpireAfter = seconds;
             return this;
         }
 
