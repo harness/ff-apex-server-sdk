@@ -36,6 +36,12 @@ public class FFAuthServiceCached implements FFAuthService {
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
+    public Boolean isAuthTokenPresent() {
+        Map<String, String> authData = (Map<String, String>)this.config.cache.getKey(this.getAuthCacheKey());
+        if(authData == null) return false;
+        return true;
+    }
+
     public Long getLastAuthTime() {
         return this.config.cache.getLastAuthKey(this.getAuthCacheKey());
     }

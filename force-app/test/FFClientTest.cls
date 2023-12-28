@@ -37,6 +37,10 @@ private class FFClientTest {
         public Long getLastAuthTime() {
             return mockLastAuthTime;
         }
+
+        public Boolean isAuthTokenPresent() {
+            return true;
+        }
     
         public void setLastAuthTime(Long lastAuthTime) {
             this.mockLastAuthTime = lastAuthTime;
@@ -273,7 +277,8 @@ private class FFClientTest {
         FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
 
         // Directly invoke the logic that would be triggered by the poller
-        // This should check the last authentication time and decide whether to reauthenticate
+        // Call the cacheUpdator twice, because it skips on the first iteration.
+        cacheUpdator.call(null, null);
         cacheUpdator.call(null, null);
 
         // Verify that reauthentication was triggered due to the token being near expiration

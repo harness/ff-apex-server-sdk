@@ -258,7 +258,7 @@ public class FFClient {
 
             // Subtract one hour (3600 seconds) from the expiration time to add a margin
             Datetime marginTime = expirationTime.addSeconds(-3600);
-
+            
             if (Datetime.now().getTime() < marginTime.getTime()) {
                 System.debug('Authentication token has not expired');
                 this.client.updateCache();
