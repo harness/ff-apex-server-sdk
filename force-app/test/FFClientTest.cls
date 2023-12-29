@@ -369,8 +369,6 @@ private class FFClientTest {
         FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
                                     .cache(new FFMockCache()).build();
 
-
-
         List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
         List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
         FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
