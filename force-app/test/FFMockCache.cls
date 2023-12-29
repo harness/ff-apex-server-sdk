@@ -16,6 +16,10 @@ public class FFMockCache implements FFCache {
         this.cache.put('auth'+key, authData);
     }
 
+    public void deleteAuth(String key) {
+        this.cache.remove('auth'+key);
+    } 
+
 
     public void putLastAuthTimeWithoutTTL(String key, Long lastAuthTime) {
         this.cache.put('lastAuth'+key, lastAuthTime);

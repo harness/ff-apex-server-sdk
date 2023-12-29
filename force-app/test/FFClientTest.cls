@@ -24,9 +24,15 @@ private class FFClientTest {
         private FFModels.AuthInfo mockAuthInfo;
         private Long mockLastAuthTime;
         public Boolean authenticateCalled = false;
+        public Boolean simulateEvictedAuthToken;
     
         public MockFFAuthService(FFModels.AuthInfo mockAuthInfo) {
             this.mockAuthInfo = mockAuthInfo;
+        }
+
+        public MockFFAuthService(FFModels.AuthInfo mockAuthInfo, Boolean simulateEvictedAuthToken) {
+            this.mockAuthInfo = mockAuthInfo;
+            this.simulateEvictedAuthToken = simulateEvictedAuthToken;
         }
     
         public FFModels.AuthInfo authenticate(Boolean force) {
@@ -39,6 +45,9 @@ private class FFClientTest {
         }
 
         public Boolean isAuthTokenPresent() {
+            if (this.simulateEvictedAuthToken) {
+                return false;
+            }
             return true;
         }
     
@@ -282,6 +291,37 @@ private class FFClientTest {
         cacheUpdator.call(null, null);
 
         // Verify that reauthentication was triggered due to the token being near expiration
+        System.assertEquals(true, mockAuthService.authenticateCalled, 'Reauthentication was not triggered as expected');
+    }
+
+    @isTest
+    private static void shouldReauthenticateWhenTokenIsMissing() {
+        // Create mock authentication information
+        FFModels.AuthInfo mockAuthInfo = new FFModels.AuthInfo('mockToken', 'envUUID', 'cluster');
+        MockFFAuthService mockAuthService = new MockFFAuthService(mockAuthInfo, true);
+
+        // Set the last authentication time to now
+        Long pastTimeMillis = Datetime.now().getTime();
+        mockAuthService.setLastAuthTime(pastTimeMillis);
+
+        // Create the FFClient configuration with a specified expiration interval
+        FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
+                                    .cache(new FFMockCache()).build();
+
+        List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
+        List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
+        // Instantiate FFClient with the mock auth service
+        FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
+
+        // Instantiate the CacheUpdator with the FFClient instance
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
+
+        // Directly invoke the logic that would be triggered by the poller
+        // Call the cacheUpdator twice, because it skips on the first iteration.
+        cacheUpdator.call(null, null);
+        cacheUpdator.call(null, null);
+
+        // Verify that reauthentication was triggered due to the token missing
         System.assertEquals(true, mockAuthService.authenticateCalled, 'Reauthentication was not triggered as expected');
     }
 
