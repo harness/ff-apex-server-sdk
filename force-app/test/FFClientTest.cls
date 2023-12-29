@@ -283,7 +283,7 @@ private class FFClientTest {
         FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
 
         // Instantiate the CacheUpdator with the FFClient instance
-        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
         // Directly invoke the logic that would be triggered by the poller
         // Call the cacheUpdator twice, because it skips on the first iteration.
@@ -314,7 +314,7 @@ private class FFClientTest {
         FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
 
         // Instantiate the CacheUpdator with the FFClient instance
-        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
         // Directly invoke the logic that would be triggered by the poller
         // Call the cacheUpdator twice, because it skips on the first iteration.
@@ -344,7 +344,7 @@ private class FFClientTest {
         FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
 
         // Instantiate the CacheUpdator with the FFClient instance
-        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
         // Directly invoke the logic that would be triggered by the poller
         // Call the cacheUpdator twice, because it skips on the first iteration.
@@ -375,7 +375,7 @@ private class FFClientTest {
         List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
         FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
 
-        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client);
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
 
         cacheUpdator.call(null, null);
