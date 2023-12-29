@@ -215,14 +215,17 @@ public class FFClient {
 
         private final FFClient client;
 
-        // Flags/segements are fetched at initialization to populate the cache for any evaluations
-        // that are made immediately or shortly after. This flag ensures
-        // we don't immediately re-poll after the initial fetch, instead waiting
-        // for the next scheduled poll interval.
-        private Boolean initialFetchAccountedFor = false;
-    
-        public CacheUpdator(FFClient client) {
+        // If withWaitForInitialized is requested Flags/segements are fetched at initialization
+        // to populate the cache so that evaluations are up to date immediately.
+        // This flag ensures we don't immediately re-poll in this case.
+        // Default the flag to true, as we only want to skip the first poll if waitForInitialized is requeted.
+        private Boolean initialFetchAccountedFor = true;
+
+        public CacheUpdator(FFClient client, Boolean waitForInitialized) {
             this.client = client;
+            if (waitForInitialized) {
+                this.initialFetchAccountedFor = false;
+            }
         }
 
         public Object call(String action, Map<String, Object> args) {
@@ -247,7 +250,7 @@ public class FFClient {
                 System.debug('Unable to find authentication token in cache, forcing authentication...');
                 return this.authAndUpdateCache();
             }
-           
+
             // This should be set when the SDK authenticates, so this is a defesnive check to
             // force a re-auth if it can't be found, perhaps due to a cache eviction.
             if(lastAuthTimeMillis == null) {
@@ -257,7 +260,7 @@ public class FFClient {
             }
 
             Datetime lastAuthTime = Datetime.newInstance(lastAuthTimeMillis);
-            
+
             // Calculate the expiration time based on last authentication time and the expiration interval
             Datetime expirationTime = lastAuthTime.addSeconds(this.client.config.authExpireAfter);
 
