@@ -24,6 +24,7 @@ private class FFClientTest {
         private FFModels.AuthInfo mockAuthInfo;
         private Long mockLastAuthTime;
         public Boolean authenticateCalled = false;
+        public Boolean lastAuthTimeCalled = false;
         public Boolean simulateEvictedAuthToken = false;
     
         public MockFFAuthService(FFModels.AuthInfo mockAuthInfo) {
@@ -41,6 +42,7 @@ private class FFClientTest {
         }
     
         public Long getLastAuthTime() {
+            this.lastAuthTimeCalled = true;
             return mockLastAuthTime;
         }
 
@@ -285,9 +287,6 @@ private class FFClientTest {
         // Instantiate the CacheUpdator with the FFClient instance
         FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
-        // Directly invoke the logic that would be triggered by the poller
-        // Call the cacheUpdator twice, because it skips on the first iteration.
-        cacheUpdator.call(null, null);
         cacheUpdator.call(null, null);
 
         // Verify that reauthentication was triggered due to the token being near expiration
@@ -316,9 +315,6 @@ private class FFClientTest {
         // Instantiate the CacheUpdator with the FFClient instance
         FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
-        // Directly invoke the logic that would be triggered by the poller
-        // Call the cacheUpdator twice, because it skips on the first iteration.
-        cacheUpdator.call(null, null);
         cacheUpdator.call(null, null);
 
         // Verify that reauthentication was triggered due to the token missing
@@ -346,9 +342,6 @@ private class FFClientTest {
         // Instantiate the CacheUpdator with the FFClient instance
         FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, false);
 
-        // Directly invoke the logic that would be triggered by the poller
-        // Call the cacheUpdator twice, because it skips on the first iteration.
-        cacheUpdator.call(null, null);
         cacheUpdator.call(null, null);
 
         // Verify that reauthentication was triggered due to the token missing
@@ -380,6 +373,34 @@ private class FFClientTest {
 
         // Assert that authentication hasn't happened 
         System.assertEquals(false, mockAuthService.authenticateCalled, 'Reauthentication was incorrectly triggered');
+    }
+
+    @isTest
+    private static void shouldSkipFirstPollIfWaitForInitialized() {
+        // Create mock authentication information
+        FFModels.AuthInfo mockAuthInfo = new FFModels.AuthInfo('mockToken', 'envUUID', 'cluster');
+        MockFFAuthService mockAuthService = new MockFFAuthService(mockAuthInfo);
+
+        // Set the last authentication time to be very recent
+        Long recentTimeMillis = Datetime.now().addSeconds(-100).getTime();
+        mockAuthService.setLastAuthTime(recentTimeMillis);
+
+        // Create the FFClient configuration with a specified expiration interval
+        FFConfig config = FFConfig.builder().authExpireAfter(24 * 60 * 60) // Token expires after 24 hours
+                                    .cache(new FFMockCache()).build();
+
+        List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
+        List<FFModelsFeatures.TargetSegment> targets = new List<FFModelsFeatures.TargetSegment>();
+        FFClient client = new FFClient(mockAuthService, mockApi(features, targets), mockMetricsApi(features, targets), config, 'test', 'test');
+
+        // set waitForInitialized to true
+        FFClient.CacheUpdator cacheUpdator = new FFClient.CacheUpdator(client, true);
+
+        // Do the initial poll
+        cacheUpdator.call(null, null);
+    
+        // Assert that the cache updator doesn't check lastAuthTime on first call
+        System.assertEquals(false, mockAuthService.lastAuthTimeCalled, 'Initial poll wasn not skipped when waitForInitialized was requested');
     }
 
 }
