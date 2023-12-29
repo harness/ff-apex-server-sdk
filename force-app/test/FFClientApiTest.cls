@@ -25,6 +25,39 @@ private class FFClientApiTest {
     }
 
     @isTest
+    private static void authenticateUnauthorizedTest() {
+        // Create a mock response for 401 Unauthorized
+        HttpResponse res = new HttpResponse();
+        res.setHeader('Content-Type', 'application/json');
+        res.setBody('Unauthorized access');
+        res.setStatusCode(401);
+        res.setStatus('Unauthorized');
+
+        Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
+
+        // Prepare the request and client
+        FFModels.AuthenticationRequest req = new FFModels.AuthenticationRequest();
+        Map<String, Object> params = new Map<String, Object>{
+            'ffAuthenticationRequest' => req
+        };
+
+        FFBaseCallout client = new FFBaseCallout('test', 'test');
+        FFClientApi api = new FFClientApi(client);
+
+        // Perform the test and handle the expected exception
+        Boolean caughtException = false;
+        try {
+            api.authenticate(params);
+        } catch (FFBase.ApiException e) {
+            caughtException = true;
+            System.assertEquals(401, e.getStatusCode());
+            System.assertEquals('API returned HTTP 401: Unauthorized', e.getMessage());
+        }
+
+        System.assert(caughtException, 'Expected an ApiException for unauthorized access');
+    }
+
+    @isTest
     private static void getFeatureConfigsTest() {
         List<FFModelsFeatures.FeatureConfig> mockResponse = new List<FFModelsFeatures.FeatureConfig>();
         FFModelsFeatures.FeatureConfig feature = new FFModelsFeatures.FeatureConfig();
@@ -50,6 +83,42 @@ private class FFClientApiTest {
         FFClientApi api = new FFClientApi(client);
         String actualResponse = JSON.serialize(api.getFeatureConfigs(params));
         System.assertEquals(serielized, actualResponse);
+    }
+
+    @isTest
+    private static void getFeatureConfigsUnauthorizedTest() {
+        // Create a mock response for 401 Unauthorized
+        HttpResponse res = new HttpResponse();
+        res.setHeader('Content-Type', 'application/json');
+        res.setBody('Unauthorized access');
+        res.setStatusCode(401);
+        res.setStatus('Unauthorized');
+
+        Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
+
+        // Prepare the request and client
+        FFModels.AuthenticationRequest req = new FFModels.AuthenticationRequest();
+        // Map<String, Object> params = new Map<String, Object>{
+        //     'ffAuthenticationRequest' => req
+        // };
+        Map<String, Object> params = new Map<String, Object>{
+            'environmentUUID' => 'test',
+            'cluster' => 'test'
+        };
+        FFBaseCallout client = new FFBaseCallout('test', 'test');
+        FFClientApi api = new FFClientApi(client);
+
+        // Perform the test and handle the expected exception
+        Boolean caughtException = false;
+        try {
+            api.getFeatureConfigs(params);
+        } catch (FFBase.ApiException e) {
+            caughtException = true;
+            System.assertEquals(401, e.getStatusCode());
+            System.assertEquals('API returned HTTP 401: Unauthorized', e.getMessage());
+        }
+
+        System.assert(caughtException, 'Expected an ApiException for unauthorized access');
     }
 
     @isTest
@@ -86,4 +155,37 @@ private class FFClientApiTest {
         String actualResponse = JSON.serialize(api.getTargetSegments(params));
         System.assertEquals(serielized, actualResponse);
     }
+
+
+    @isTest
+    private static void getTargetSegmentsUnauthorizedTest() {
+        // Create a mock response for 401 Unauthorized
+        HttpResponse res = new HttpResponse();
+        res.setHeader('Content-Type', 'application/json');
+        res.setBody('Unauthorized access');
+        res.setStatusCode(401);
+        res.setStatus('Unauthorized');
+
+        Test.setMock(HttpCalloutMock.class, new FFResponseMock(res));
+
+        // Prepare the request and client
+        FFModels.AuthenticationRequest req = new FFModels.AuthenticationRequest();
+        Map<String, Object> params = new Map<String, Object>{
+            'environmentUUID' => 'test',
+            'cluster' => 'test'
+        };
+        FFBaseCallout client = new FFBaseCallout('test', 'test');
+        FFClientApi api = new FFClientApi(client);
+
+        // Perform the test and handle the expected exception
+        Boolean caughtException = false;
+        try {
+            api.getTargetSegments(params);
+        } catch (FFBase.ApiException e) {
+            caughtException = true;
+            System.assertEquals(401, e.getStatusCode());
+            System.assertEquals('API returned HTTP 401: Unauthorized', e.getMessage());
+        }
+    }
+
 }

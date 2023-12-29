@@ -1,7 +1,7 @@
 public abstract class FFCacheKeys {
 
-    public static String getAuthCacheKey(String sdkKey) {
-        return sdkKey.replaceAll('-', '');
+    public static String getCacheKey(String key) {
+        return key.replaceAll('-', '');
     }
 }
 

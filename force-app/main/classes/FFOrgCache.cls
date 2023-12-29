@@ -3,7 +3,7 @@ public class FFOrgCache implements FFCache {
     private String cacheNamespace = 'local';
     private String cachePartition = 'basic';
 
-    private enum EntryType { FEATURE, SEGMENT, AUTH }
+    private enum EntryType { FEATURE, SEGMENT, AUTH, AUTHTIME }
 
     /* Cache keys cannot have any non-alphanumeric characters */
     private String stripNonAlphanumeric(String str) {
@@ -55,6 +55,12 @@ public class FFOrgCache implements FFCache {
         Cache.Org.put(key, authData, ttl);
     }
 
+    public void putLastAuthTimeWithoutTTL(String sdkKey, Long lastAuthTime) {
+        String key = makeKey(EntryType.AUTHTIME, sdkKey);
+        System.debug('Caching last auth time: ' + key);
+        Cache.Org.put(key, lastAuthTime);
+    }
+
     public List<FFModelsFeatures.FeatureConfig> getFeatures() {
         List<FFModelsFeatures.FeatureConfig> features = new List<FFModelsFeatures.FeatureConfig>();
         for (String nextKey : Cache.Org.getKeys()) {
@@ -75,10 +81,16 @@ public class FFOrgCache implements FFCache {
         return segments;
     }
 
-    public Map<String, String> getAuth(String sdkKey) {
+    public Map<String, String> getKey(String sdkKey) {
         String key = makeKey(EntryType.AUTH, sdkKey);
         System.debug('Get auth: ' + key);
         return (Map<String, String>) Cache.Org.get(key);
+    }
+
+    public Long getLastAuthKey(String sdkKey) {
+        String key = makeKey(EntryType.AUTHTIME, sdkKey);
+        System.debug('Get last auth: ' + key);
+        return (Long) Cache.Org.get(key);
     }
 
     public String getCacheNamespace() {

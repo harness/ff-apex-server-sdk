@@ -65,6 +65,11 @@ System.debug('Feature flag ' + flag + ' is '+ value + ' for this user');
 ```
 
 ### Regular Polling
+The SDKs uses a polling strategy to keep the local cache in sync with the flag configurations.
+Since version 0.1.3, the poller will ensure that the SDK's authentication is refreshed before the token
+is removed from your Platform Cache via its TTL. This is beneficial when you have scheduled jobs that are
+using the FFClient, but the SDK has not been re-initialized recently outside of a scheduled job.
+
 ```apex
 // set cache Namespace and Partition
 FFOrgCache cache = new FFOrgCache('local', 'basic');
@@ -74,6 +79,32 @@ FFConfig config = new FFConfig.builder()
 
 // Start Polling to update the cache
 FFClient.builder('Your SDK Key', config)
+    .withPolling(60) // Poll every 60 seconds
+    .build();
+```
+Default Setting: This feature is disabled by default and must be explicitly enabled if needed.
+
+**Warning**: If polling is not enabled, then the SDK will not be able to receive updated flag configuration. 
+If you only want to receive the initial flag configuration, you can leave polling disabled and use the `FFClient.builder.withWaitForInitialized(true)` option. See
+[Immediate Flag and Segment Fetching (Not Suitable for Scheduled Jobs)](#immediate-flag-and-segment-fetching-not-suitable-for-scheduled-jobs)
+
+### Immediate Flag and Segment Fetching (Not Suitable for Scheduled Jobs)
+To ensure the FFClient provides accurate evaluations right after initialization, you can use withWaitForInitialized(true). This method triggers an immediate cache refresh via a callout, thus updating the cache before any evaluations are performed. Consequently, it also skips the first scheduled poll, as the cache is already up to date.
+
+Default Setting: This feature is disabled by default and must be explicitly enabled if needed.
+
+**Warning**: Avoid using this feature within scheduled jobs, as it may cause the job to fail due to the immediate callout.
+
+```apex
+// set cache Namespace and Partition
+FFOrgCache cache = new FFOrgCache('local', 'basic');
+FFConfig config = new FFConfig.builder()
+    .cache(cache)
+    .build();
+
+// Start Polling to update the cache
+FFClient.builder('Your SDK Key', config)
+    .withWaitForInitialized(true) // Fetch flags immediately
     .withPolling(60) // Poll every 60 seconds
     .build();
 ```

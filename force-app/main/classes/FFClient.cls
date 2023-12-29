@@ -3,6 +3,7 @@ public class FFClient {
     private final FFConfig config;
     private final FFClientApi api;
     private final FFMetricsApi metricsApi;
+    private final FFAuthService authService;
 
     private String environmentUUID;
     private String cluster = '1';
@@ -10,11 +11,14 @@ public class FFClient {
     private static Integer maxRetry = 5;
     private final Long waitInterval = 2000;
 
+    public static String LAST_AUTH_TIME_KEY = 'lastAuthTime';
+
     public virtual class AuthException extends Exception {}
 
-    public FFClient(FFClientApi api, FFMetricsApi metricsApi, FFConfig config, String environmentUUID, String cluster) {
+    public FFClient(FFAuthService authService, FFClientApi api, FFMetricsApi metricsApi, FFConfig config, String environmentUUID, String cluster) {
         this.config = config;
         this.api = api;
+        this.authService = authService;
         this.metricsApi = metricsApi;
         this.environmentUUID = environmentUUID;
         this.cluster = cluster;
@@ -30,10 +34,10 @@ public class FFClient {
         FFClientApi api = new FFClientApi(apiClient);
         FFMetricsApi metricsApi = new FFMetricsApi(eventsClient);
         FFAuthService authService = new FFAuthServiceCached(sdkKey, config, api);
-        FFModels.AuthInfo authResult = authService.authenticate();
+        FFModels.AuthInfo authResult = authService.authenticate(false);
         apiClient.setJWTToken(authResult.authToken);
         eventsClient.setJWTToken(authResult.authToken);
-        return new FFClient(api, metricsApi, config, authResult.environmentUUID, authResult.cluster);
+        return new FFClient(authService, api, metricsApi, config, authResult.environmentUUID, authResult.cluster);
     }
 
     public void updateCache() {
@@ -205,5 +209,81 @@ public class FFClient {
 
     public static FFClientBuilder builder(String sdkKey, FFConfig config){
         return new FFClientBuilder(sdkKey, config);
+    }
+
+    public class CacheUpdator implements Callable {
+
+        private final FFClient client;
+
+        // If withWaitForInitialized is requested Flags/segements are fetched at initialization
+        // to populate the cache so that evaluations are up to date immediately.
+        // This flag ensures we don't immediately re-poll in this case.
+        // Default the flag to true, as we only want to skip the first poll if waitForInitialized is requeted.
+        private Boolean initialFetchAccountedFor = true;
+
+        public CacheUpdator(FFClient client, Boolean waitForInitialized) {
+            this.client = client;
+            if (waitForInitialized) {
+                this.initialFetchAccountedFor = false;
+            }
+        }
+
+        public Object call(String action, Map<String, Object> args) {
+
+            if (!initialFetchAccountedFor) {
+                this.initialFetchAccountedFor = true;
+                return true;
+            }
+
+            // Polling reauthentication mechanism:
+            // The JWT token used for authentication is set to expire after 24 hours. In scenarios involving long-running
+            // jobs, it's possible that the token stored in the Platform Cache might not get refreshed if no authentication
+            // calls are made within this 24-hour period. To handle such cases and prevent authentication failures,
+            // we manually trigger a reauthentication process. This ensures that a valid token is always available,
+            // especially for jobs that run longer than the token's expiration period.
+            Long lastAuthTimeMillis = this.client.authService.getLastAuthTime();
+
+            Boolean isAuthTokenPresent = this.client.authService.isAuthTokenPresent();
+
+            // Defensive check to force a re-auth if the auth token is not in the cache
+            if (!isAuthTokenPresent) {
+                System.debug('Unable to find authentication token in cache, forcing authentication...');
+                return this.authAndUpdateCache();
+            }
+
+            // This should be set when the SDK authenticates, so this is a defesnive check to
+            // force a re-auth if it can't be found, perhaps due to a cache eviction.
+            if(lastAuthTimeMillis == null) {
+                System.debug('Unable to find last authentication time in cache, forcing authentication');
+                return this.authAndUpdateCache();
+
+            }
+
+            Datetime lastAuthTime = Datetime.newInstance(lastAuthTimeMillis);
+
+            // Calculate the expiration time based on last authentication time and the expiration interval
+            Datetime expirationTime = lastAuthTime.addSeconds(this.client.config.authExpireAfter);
+
+            // Subtract one hour (3600 seconds) from the expiration time to add a margin
+            Datetime marginTime = expirationTime.addSeconds(-3600);
+
+            if (Datetime.now().getTime() < marginTime.getTime()) {
+                System.debug('Authentication token has not expired');
+                this.client.updateCache();
+                return true;
+            }
+
+            // Auth token has expired, so re-authenticate before updating cache
+            System.debug('Authentication token has expired, re-authenticating...');
+            return this.authAndUpdateCache();
+        }
+
+        private Boolean authAndUpdateCache() {
+            FFModels.AuthInfo authResult = this.client.authService.authenticate(true);
+            this.client.api.getClient().setJWTToken(authResult.authToken);
+            this.client.metricsApi.getClient().setJWTToken(authResult.authToken);
+            this.client.updateCache();
+            return true;
+        }
     }
 }

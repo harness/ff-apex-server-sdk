@@ -16,6 +16,15 @@ public class FFMockCache implements FFCache {
         this.cache.put('auth'+key, authData);
     }
 
+    public void deleteAuth(String key) {
+        this.cache.remove('auth'+key);
+    } 
+
+
+    public void putLastAuthTimeWithoutTTL(String key, Long lastAuthTime) {
+        this.cache.put('lastAuth'+key, lastAuthTime);
+    }
+
     public List<FFModelsFeatures.FeatureConfig> getFeatures() {
         return (List<FFModelsFeatures.FeatureConfig>) this.cache.get('features');
     }
@@ -24,8 +33,12 @@ public class FFMockCache implements FFCache {
         return (List<FFModelsFeatures.TargetSegment>) this.cache.get('segments');
     }
 
-    public Map<String, String> getAuth(String key) {
-        return (Map<String, String>) this.cache.get('auth'+key);
+    public Map<String, String> getKey(String key) {
+        return (Map<String, String>) this.cache.get(key);
+    }
+
+    public Long getLastAuthKey(String key) {
+        return (Long) this.cache.get(key);
     }
 
     public String getCacheNamespace() { return 'TEST'; }

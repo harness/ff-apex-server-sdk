@@ -24,18 +24,37 @@ public class FFAuthServiceCached implements FFAuthService {
         }, this.config.authExpireAfter);
     }
 
+    @TestVisible
+    private void updateLastAuthTimeInCache(Long authTime) {
+        this.config.cache.putLastAuthTimeWithoutTTL(this.getAuthCacheKey(), authTime);
+    }
+
     private FFModels.AuthInfo claimsFromCache() {
-        Map<String, String> authData = (Map<String, String>)this.config.cache.getAuth(this.getAuthCacheKey());
+        Map<String, String> authData = (Map<String, String>)this.config.cache.getKey(this.getAuthCacheKey());
         if(authData == null) return null;
         System.debug('Loading authentication data from cache');
         return new FFModels.AuthInfo(authData.get(CACHE_KEY_JWT), authData.get(CACHE_KEY_ENVIRONMENT), authData.get(CACHE_KEY_CLUSTER));
     }
 
-    private String getAuthCacheKey() {
-        return FFCacheKeys.getAuthCacheKey(this.sdkKey);
+    public Boolean isAuthTokenPresent() {
+        Map<String, String> authData = (Map<String, String>)this.config.cache.getKey(this.getAuthCacheKey());
+        if(authData == null) return false;
+        return true;
     }
 
-    public FFModels.AuthInfo authenticate() {
+    public Long getLastAuthTime() {
+        return this.config.cache.getLastAuthKey(this.getAuthCacheKey());
+    }
+
+    private String getAuthCacheKey() {
+        return FFCacheKeys.getCacheKey(this.sdkKey);
+    }
+
+    public FFModels.AuthInfo authenticate(Boolean force) {
+        if (force) {
+            System.debug('Force auth refresh requested, authenticating...');
+            return this.reauthenticate(0);
+        }
         FFModels.AuthInfo claims = this.claimsFromCache();
         if(claims != null) return claims;
         System.debug('Authentication token not found in cache, authenticating...');
@@ -60,13 +79,16 @@ public class FFAuthServiceCached implements FFAuthService {
             FFModels.JWTClaims claims = this.claimsFrom(result.authToken);
             FFModels.AuthInfo authClaims = new FFModels.AuthInfo(result.authToken, claims.environment, claims.clusterIdentifier);
             this.updateAuthInCache(authClaims);
+            Long authTime = Datetime.now().getTime();
+            this.updateLastAuthTimeInCache(authTime);
             System.debug('Env UUID ' + authClaims.environmentUUID);
             System.debug('Cluster ID ' + authClaims.cluster);
+            System.debug('Auth time ' + authTime);
             return authClaims;
         } catch (FFBase.ApiException e) {
             System.debug('Auth Error');
             System.debug(e);
-            if(e.getStatusCode() == 403) {
+            if(e.getStatusCode() == 403 || e.getStatusCode() == 500) {
                 if(retry < this.config.authRetries) {
                     System.debug('Retrying authentication, retry no. ' + retry);
                     return this.reauthenticate(retry + 1);
